@@ -908,6 +908,15 @@ details.pcat>summary .meter{grid-column:1/-1;margin-top:2px}
 .dash-picks{display:flex;flex-wrap:wrap;gap:6px}
 .dash-loc p{margin:0}
 .dash-foot{margin:10px 0 0}
+.wx-one{margin-top:10px;border:1px solid var(--line);border-left:3px solid var(--muted);border-radius:9px;padding:12px;background:var(--bg)}
+.wx-one.s-ok{border-left-color:var(--ok,#2e7d4f)}.wx-one.s-info,.wx-one.s-warn{border-left-color:var(--signal)}.wx-one.s-bad{border-left-color:var(--bad,#c0392b)}
+.wx-top{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.wx-value{font:800 1.3rem/1.15 var(--display);font-stretch:85%}
+.wx-rows{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px}
+.wx-rows li{display:grid;grid-template-columns:8.5em 1fr auto;gap:8px;align-items:baseline;font-size:.88rem;border-top:1px solid var(--line);padding-top:6px}
+.wx-rows b{font-weight:700}.wx-rows a{font-size:.8rem;white-space:nowrap}
+.dash-tiles{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:700px){.dash-tiles .uk-tile:first-child{grid-column:auto}.dash-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.wx-rows li{grid-template-columns:1fr auto}.wx-rows li span{grid-column:1/-1;order:3}}
 @media(max-width:650px){
  .dash-days{gap:6px}
  .dash-day{padding:7px 8px}
@@ -1717,7 +1726,6 @@ const FEEDS = [
  {id:"eonet",name:"NASA EONET",home:"https://eonet.gsfc.nasa.gov/",tier:"telemetry",group:"Physical",kind:"eonet",url:"https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=8",note:"Open natural events."},
  {id:"who",name:"WHO news",home:"https://www.who.int/news",tier:"official",group:"Physical",kind:"rss",url:"https://www.who.int/rss-feeds/news-english.xml",note:"World Health Organization news."},
  {id:"floods",name:"England flood warnings",home:"https://check-for-flooding.service.gov.uk/",tier:"official",group:"Physical",kind:"floods",url:"https://environment.data.gov.uk/flood-monitoring/id/floods?_limit=12",note:"Warnings in force. Empty means none live."},
- {id:"azure-status",name:"Microsoft Azure status",home:"https://azure.status.microsoft/en-gb/status/",tier:"official",group:"Official",kind:"rss",statusFeed:true,url:"https://azure.status.microsoft/en-gb/status/feed/",note:"Microsoft's own notices of Azure incidents with wide impact. Azure carries Microsoft 365, Outlook and Teams."},
  {id:"bbc-tech",name:"BBC Technology",home:"https://www.bbc.co.uk/news/technology",tier:"wire",group:"Wires",kind:"rss",purposeOnly:true,url:"https://feeds.bbci.co.uk/news/technology/rss.xml",note:"Only outage, attack and infrastructure stories are kept."},
  {id:"bbc",name:"BBC World",home:"https://www.bbc.co.uk/news/world",tier:"wire",group:"Wires",kind:"rss",url:"https://feeds.bbci.co.uk/news/world/rss.xml",note:"Context, not a graded incident."}
 ];
@@ -1734,79 +1742,22 @@ FEEDS.push(
    note:"Power, internet, water and transport disruption reported by major outlets, through the GDELT news index. Only headlines that name both the system and the disruption are kept. Reads straight from the browser."},
   {id:"gdelt-outage", name:"Major outlets · cloud and IT outages", home:"https://www.gdeltproject.org/", tier:"wire", group:"Wires", kind:"gdelt", cors:true,
    url:gdeltUrl('("Microsoft outage" OR "Azure outage" OR "Microsoft 365 outage" OR "Outlook outage" OR "Teams outage" OR "AWS outage" OR "Amazon Web Services outage" OR "Google Cloud outage" OR "Cloudflare outage" OR "CrowdStrike outage" OR "global outage" OR "worldwide outage" OR "global IT outage") sourcelang:english'),
-   note:"Global failures of Microsoft, AWS, Google, Cloudflare and other services that banks, hospitals and councils run on, reported by major outlets through the GDELT news index."},
+   note:"Global failures of Microsoft, AWS, Google, Cloudflare and other services that banks, hospitals and councils run on, reported by major outlets through the GDELT news index. Reads straight from the browser."},
   {id:"wiki-events", name:"Wikipedia · current events", home:"https://en.wikipedia.org/wiki/Portal:Current_events", tier:"wire", group:"Wires", kind:"wikievents", cors:true,
    url:"https://en.wikipedia.org/w/api.php?action=parse&page=Portal:Current_events&prop=text&format=json&formatversion=2&origin=*",
    note:"The editor-curated daily record of world events, each with its news source. Only disasters, attacks on infrastructure and cyber items are kept. Reads straight from the browser."}
 );
 FEEDS.forEach(f => { if (["kev","usgs","eonet","floods"].includes(f.id)) f.cors = true; });
 /* When a feed's own RSS cannot be read from the browser, fall back to the same outlet through the GDELT index. */
-const GDELT_FALLBACK = {bleep:"bleepingcomputer.com", record:"therecord.media", thn:"thehackernews.com", krebs:"krebsonsecurity.com", secweek:"securityweek.com", darkreading:"darkreading.com", register:"theregister.com", wired:"wired.com", bbc:"bbc.co.uk", "axios-cyber":"axios.com", "ncsc-news":"ncsc.gov.uk", "ncsc-reports":"ncsc.gov.uk"};
+const GDELT_FALLBACK = {"bbc-tech":"bbc.co.uk", bleep:"bleepingcomputer.com", record:"therecord.media", thn:"thehackernews.com", krebs:"krebsonsecurity.com", secweek:"securityweek.com", darkreading:"darkreading.com", register:"theregister.com", wired:"wired.com", bbc:"bbc.co.uk", "axios-cyber":"axios.com", "ncsc-news":"ncsc.gov.uk", "ncsc-reports":"ncsc.gov.uk"};
 function gdeltFallbackUrl(id) { const d = GDELT_FALLBACK[id]; return d ? gdeltUrl('domain:' + d + ' (attack OR breach OR ransomware OR hackers OR hacked OR vulnerability OR exploit OR malware OR outage OR blackout OR sabotage)').replace("timespan=3d", "timespan=7d") : null; }
 
 const FEED_TIER = {official:"Official",research:"Research",specialist:"Specialist",wire:"Wire",telemetry:"Telemetry"};
 const DASHBOARD_RELAY = "https://allorigins.hexlet.app/raw?disableCache=true&url=";
 const V311_RELAYS = ["https://api.allorigins.win/raw?url=","https://api.codetabs.com/v1/proxy?quest=","https://api.cors.lol/?url="];
 const PREVIOUS_RELAYS = ["https://api.allorigins.win/raw?url=","https://corsproxy.io/?url=","https://api.codetabs.com/v1/proxy?quest="];
-const DEFAULT_RELAYS = [DASHBOARD_RELAY, ...V311_RELAYS];
+const DEFAULT_RELAYS = [...V311_RELAYS, DASHBOARD_RELAY];
 const NET_COOLDOWNS = new Map();
-/* v3.13 · GitHub collector. A scheduled job in the desk's own GitHub repository reads every source that a
-   phone browser is not allowed to read directly, every few minutes, and publishes the untouched replies.
-   Any browser can read those files, so the board no longer depends on free public relays. The relays stay
-   as a backup, and sources a browser can read directly are still read directly. */
-const COLLECTOR = {
-  base: "https://raw.githubusercontent.com/AtomSmasher-design/global-threat-desk/live/",
-  files: [{ name: "dash.json", gap: 0, last: 0 }, { name: "feeds.json", gap: 4 * 60e3, last: 0 }], preferAge: 20 * 60e3, keepAge: 6 * 3600e3,
-  entries: new Map(), generatedAt: 0, checkedAt: 0, ok: null, error: "", loading: null
-};
-function collectorLoad(force = false) {
-  if (navigator.onLine === false) return Promise.resolve();
-  if (COLLECTOR.loading) return COLLECTOR.loading;
-  if (!force && Date.now() - COLLECTOR.checkedAt < 60e3) return Promise.resolve();
-  COLLECTOR.loading = (async () => {
-    // The warnings file is small and read every cycle; the news file is read at most every four minutes.
-    const due = COLLECTOR.files.filter(f => Date.now() - f.last >= f.gap);
-    const results = await Promise.allSettled(due.map(async file => {
-      const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 20000);
-      try {
-        const r = await fetch(COLLECTOR.base + file.name, { signal: ctl.signal, credentials: "omit", referrerPolicy: "no-referrer", cache: "no-cache" });
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        const json = await r.json();
-        file.last = Date.now();
-        return json;
-      } finally { clearTimeout(timer); }
-    }));
-    let any = false;
-    for (const res of results) {
-      const b = res.status === "fulfilled" ? res.value : null;
-      if (!b || !b.entries || typeof b.entries !== "object") continue;
-      any = true;
-      const gen = Date.parse(b.generatedAt);
-      if (Number.isFinite(gen)) COLLECTOR.generatedAt = Math.max(COLLECTOR.generatedAt, gen);
-      for (const [url, e] of Object.entries(b.entries)) {
-        const at = Date.parse(e && e.at);
-        if (!e || e.ok !== true || typeof e.text !== "string" || !Number.isFinite(at)) continue;
-        const old = COLLECTOR.entries.get(url);
-        if (!old || old.at <= at) COLLECTOR.entries.set(url, { text: e.text, at });
-      }
-    }
-    COLLECTOR.checkedAt = Date.now(); COLLECTOR.ok = any;
-    const bad = results.find(r => r.status === "rejected");
-    COLLECTOR.error = any ? "" : bad ? String(bad.reason && bad.reason.name === "AbortError" ? "no answer in time" : (bad.reason && bad.reason.message) || bad.reason) : "unreadable reply";
-  })().catch(() => {}).finally(() => { COLLECTOR.loading = null; });
-  return COLLECTOR.loading;
-}
-function collectorGet(url, maxAge = COLLECTOR.preferAge) {
-  const e = COLLECTOR.entries.get(url);
-  if (!e) return null;
-  const age = Date.now() - e.at;
-  return age >= -5 * 60e3 && age <= maxAge ? e : null;
-}
-function collectorText() {
-  if (COLLECTOR.ok === null) return "GitHub collector: checking.";
-  if (!COLLECTOR.ok) return "GitHub collector: unavailable (" + COLLECTOR.error + "); using direct reads and relays.";
-  return "GitHub collector: last run " + (COLLECTOR.generatedAt ? whenLondon(COLLECTOR.generatedAt) : "time unknown") + ", " + COLLECTOR.entries.size + " sources held.";
-}
 const ITEM_LIMIT = 100;
 const CACHE_LIMIT = 180;
 const RETAIN_DAYS = 30;
@@ -1936,7 +1887,7 @@ function cleanRelays(value) {
   if (!Array.isArray(value)) return DEFAULT_RELAYS.slice();
   const urls = [...new Set(value.map(validRelay).filter(Boolean))].slice(0, 6);
   const saved = JSON.stringify(urls);
-  if ([V311_RELAYS, PREVIOUS_RELAYS].some(old => JSON.stringify(old) === saved)) return DEFAULT_RELAYS.slice();
+  if ([V311_RELAYS, PREVIOUS_RELAYS, [DASHBOARD_RELAY, ...V311_RELAYS]].some(old => JSON.stringify(old) === saved)) return DEFAULT_RELAYS.slice();
   return urls;
 }
 function strings(value, allowed) {
@@ -3670,6 +3621,9 @@ async function fetchVia(url, ms, parent) {
     clearTimeout(timer); parent.removeEventListener("abort", abort);
   }
 }
+const RELAY_SLOTS = { free: 3, queue: [] };
+function relaySlot() { if (RELAY_SLOTS.free > 0) { RELAY_SLOTS.free--; return Promise.resolve(); } return new Promise(r => RELAY_SLOTS.queue.push(r)); }
+function relayFree() { const next = RELAY_SLOTS.queue.shift(); if (next) next(); else RELAY_SLOTS.free++; }
 function hedge(routes, attempt, signal, stagger) {
   return new Promise((resolve, reject) => {
     let next = 0, running = 0, done = false, lastErr = new Error("Feed unavailable"), timer = null;
@@ -3687,15 +3641,6 @@ function hedge(routes, attempt, signal, stagger) {
 }
 async function pullFeed(def, run) {
   const url = def.kind === "nvd" ? nvdUrl() : typeof def.dyn === "function" ? def.dyn() : def.url;
-  await collectorLoad();
-  const fromCollector = c => {
-    const fetchedAt = new Date(c.at).toISOString();
-    const items = mergeItems(def, parseFeed(def, c.text), L.sources[def.id], fetchedAt);
-    L.mode[def.id] = "collector";
-    return {ok:true, stale:false, items, via:"GitHub collector", limited:false, fetchedAt};
-  };
-  const ready = !def.cors && collectorGet(url);
-  if (ready) { try { return fromCollector(ready); } catch (_) {} }
   const race = new AbortController(), stop = () => race.abort();
   run.controller.signal.addEventListener("abort", stop, {once:true});
   const parse = (route, text) => {
@@ -3707,8 +3652,12 @@ async function pullFeed(def, run) {
       published:x.pubDate ? (/^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d$/.test(x.pubDate) ? x.pubDate.replace(" ", "T") + "Z" : x.pubDate) : def.current ? new Date().toISOString() : null}));
   };
   const attempt = async route => {
-    const text = await fetchVia(route.u, route.k === "direct" ? (def.cors ? 15000 : 4500) : route.gd ? 15000 : 12000, race.signal);
-    return {route, raw:parse(route, text)};
+    const viaRelay = /^relay|^rssjson/.test(route.k);
+    if (viaRelay) await relaySlot();
+    try {
+      const text = await fetchVia(route.u, route.k === "direct" ? (def.cors ? 15000 : 4500) : route.gd ? 15000 : 12000, race.signal);
+      return {route, raw:parse(route, text)};
+    } finally { if (viaRelay) relayFree(); }
   };
   let routes = [{k:"direct", u:url}];
   if (!def.cors && run.relayOn) {
@@ -3732,8 +3681,6 @@ async function pullFeed(def, run) {
     return {ok:true, stale:false, items, via:route.gd ? "GDELT index" : route.json ? "feed relay" : route.k === "direct" ? "direct" : "relay", limited:!!route.json, fetchedAt};
   } catch (error) {
     race.abort();
-    const late = collectorGet(url, COLLECTOR.keepAge);
-    if (late) { try { return fromCollector(late); } catch (_) {} }
     return {ok:false, stale:false, error:error && error.name === "AbortError" ? "Timed out" : error instanceof TypeError ? "Browser could not reach this source" : clip((error && error.message) || "Feed unavailable", 120), items:[], fetchedAt:null};
   } finally {
     run.controller.signal.removeEventListener("abort", stop);
@@ -3755,7 +3702,6 @@ async function pullAll(selectedIds=null) {
     paintClock(); return;
   }
   const firstRun=L.known===null;
-  await collectorLoad(true);
   // One cycle: the warnings board and every news section refresh together.
   const alertCheck = DASH && (!Array.isArray(selectedIds) || selectedIds.some(id => DASH_FEED_IDS.includes(id))) ? dashTick(true) : null;
   const selected=(Array.isArray(selectedIds)?FEEDS.filter(f=>selectedIds.includes(f.id)):FEEDS.slice()).filter(f=>!f.dash);
@@ -3767,7 +3713,7 @@ async function pullAll(selectedIds=null) {
   L.completed=0;
   if (!L.known) L.known=new Set();
   const fresh=new Set();
-  const priority=["gb-freq","gb-mix","neso-warn","floods","gov-alerts","metoffice","gdelt-cyber","gdelt-outage","azure-status","bbc-tech","wiki-events","gdelt-infra","kev","usgs","eonet","ncsc-news","bleep","record","thn","axios-cyber","metr","wired","gdacs","bbc"];
+  const priority=["gb-freq","gb-mix","neso-warn","floods","gov-alerts","metoffice","gdelt-cyber","gdelt-outage","bbc-tech","wiki-events","gdelt-infra","kev","usgs","eonet","ncsc-news","bleep","record","thn","axios-cyber","metr","wired","gdacs","bbc"];
   const queue=selected.slice().sort((a,b)=>(priority.indexOf(a.id)<0?99:priority.indexOf(a.id))-(priority.indexOf(b.id)<0?99:priority.indexOf(b.id)));
   paintClock();
   async function worker() {
@@ -3919,7 +3865,7 @@ function paintLiveDates() {
 }
 function liveStatusPanel() {
   const c=feedCoverage();
-  return '<div class="live-coverage '+(c.ok?'has-data':'saved-data')+'"><p class="sm" data-freshness>'+esc(freshnessText())+'</p><p class="xs muted">'+esc(collectorText())+' Auto-refresh every '+S.interval+' seconds after a check completes, while open and active. Publisher and relay caches may delay reports. '+(c.limited?c.limited+' feeds currently use a conversion relay with limited depth. ':'')+'See Live wire for each source.</p><button class="chip" data-retryfailed="1"'+(L.pulling?' disabled':'')+'>Retry failed feeds</button></div>';
+  return '<div class="live-coverage '+(c.ok?'has-data':'saved-data')+'"><p class="sm" data-freshness>'+esc(freshnessText())+'</p><p class="xs muted">Auto-refresh every '+S.interval+' seconds after a check completes, while open and active. Publisher and relay caches may delay reports. '+(c.limited?c.limited+' feeds currently use a conversion relay with limited depth. ':'')+'See Live wire for each source.</p><button class="chip" data-retryfailed="1"'+(L.pulling?' disabled':'')+'>Retry failed feeds</button></div>';
 }
 function physicalMajor(r) {
   const t = r.it.title || "", id = r.f.id, both = t + " " + (r.it.summary || "");
@@ -3956,8 +3902,8 @@ function classifyReport(r) {
   const hazard = physicalMajor(r) || (f.kind === "wikievents" && /^Disasters and accidents/.test(r.it.summary || ""));
   const infraHit = /\b((?:critical|national|energy|water|transport|public|digital) infrastructure|power|electricity|energy|grids?|blackouts?|utilit\w*|water|sewage|dams?|gas (?:supply|network|pipeline)|pipelines?|oil|fuel|refiner\w*|nuclear|telecoms?|mobile networks?|broadband|internet|undersea cables?|subsea cables?|satellites?|GPS|airports?|airlines?|flights|air traffic|rail(?:ways?|roads?)?|trains?|metro|ports?|shipping|logistics|transport\w*|hospitals?|healthcare|health service|NHS|ambulance|emergency (?:services|alerts?|systems?)|911|999|banks?|banking|payments?|cash machines|ATMs?|stock exchange|supermarkets?|grocer\w*|food (?:supply|chain)|cold chain|refrigerat\w*|freezers?|fridges?|blood|plasma|pharmac\w*|factor(?:y|ies)|industrial control|ICS|SCADA|OT|manufactur\w*|government|ministr\w*|councils?|elections?|military|defen[cs]e|schools?|universit\w*)\b/i.test(text), infraTitle = /\b((?:critical|national|energy|water|transport|public|digital) infrastructure|power|electricity|energy|grids?|blackouts?|utilit\w*|water|sewage|dams?|gas (?:supply|network|pipeline)|pipelines?|oil|fuel|refiner\w*|nuclear|telecoms?|mobile networks?|broadband|internet|undersea cables?|subsea cables?|satellites?|GPS|airports?|airlines?|flights|air traffic|rail(?:ways?|roads?)?|trains?|metro|ports?|shipping|logistics|transport\w*|hospitals?|healthcare|health service|NHS|ambulance|emergency (?:services|alerts?|systems?)|911|999|banks?|banking|payments?|cash machines|ATMs?|stock exchange|supermarkets?|grocer\w*|food (?:supply|chain)|cold chain|refrigerat\w*|freezers?|fridges?|blood|plasma|pharmac\w*|factor(?:y|ies)|industrial control|ICS|SCADA|OT|manufactur\w*|government|ministr\w*|councils?|elections?|military|defen[cs]e|schools?|universit\w*)\b/i.test(title);
   const infra = !followup && !exercise && !roundup && infraTitle && /\b(attack\w*|strikes?|struck|sabotage\w*|damag\w*|disrupt\w*|outages?|blackouts?|shut ?down|shut|knocked out|cut off|collaps\w*|fail\w*|hack\w*|breach\w*|ransomware|malware|wiper|compromis\w*|cyber\w*|bomb threats?|grounded|halted|suspended|jamm\w*|spoof\w*|explosions?|evacuat\w*|state of emergency|defrost\w*|tamper\w*|hijack\w*|intrusions?|ddos)\b/i.test(title);
-  const cloudOut = !followup && !exercise && !roundup && (!!f.statusFeed || CLOUD_SVC.test(title) && CLOUD_DOWN.test(title));
-  const cloudBig = cloudOut && (!!f.statusFeed || CLOUD_BIG.test(title) || /\b(global|worldwide|nationwide|millions|thousands|across (?:the )?(?:UK|US|Europe|world))\b/i.test(title));
+  const cloudOut = !followup && !exercise && !roundup && CLOUD_SVC.test(title) && CLOUD_DOWN.test(title);
+  const cloudBig = cloudOut && (CLOUD_BIG.test(title) || /\b(global|worldwide|nationwide|millions|thousands|across (?:the )?(?:UK|US|Europe|world))\b/i.test(title));
   const major = (incident && !followup && (impact || infraHit)) || hazard || infra || cloudBig;
   const advisory = !incident && !hazard && !infra && (cyber || f.kind === "kev" || f.kind === "nvd");
   return {uk: ukHit(r, text), ai, cyber, incident: incident || hazard || infra || cloudOut, major, hazard, infra: infra || cloudOut, cloud: cloudOut, advisory: advisory && !cloudOut, kind: cloudOut && !incident ? "infrastructure" : hazard ? "hazard" : incident ? "incident" : infra ? "infrastructure" : ai ? "research" : advisory ? "advisory" : "news"};
@@ -5111,14 +5057,14 @@ const DASH_KEY = "gtd-dash-v1";
 const DASH_PLACE_KEY = "gtd-dash-place";
 const DASH_FEED_IDS = ["metoffice", "gov-alerts"];
 const DASH_SRC = {
-  met: { name: "Met Office weather warnings", short: "Met Office weather", home: "https://www.metoffice.gov.uk/weather/warnings-and-advice/uk-warnings", url: "https://www.metoffice.gov.uk/public/data/PWSCache/WarningsRSS/Region/UK", every: 2 * 60e3, maxAge: 40 * 60e3, relay: true },
-  alerts: { name: "GOV.UK emergency alerts", short: "GOV.UK emergency alerts", home: "https://www.gov.uk/alerts/current-alerts", url: "https://www.gov.uk/alerts/current-alerts", every: 2 * 60e3, maxAge: 40 * 60e3, relay: true },
+  met: { name: "Met Office weather warnings", short: "Met Office weather", home: "https://www.metoffice.gov.uk/weather/warnings-and-advice/uk-warnings", url: "https://www.metoffice.gov.uk/public/data/PWSCache/WarningsRSS/Region/UK", every: 2 * 60e3, maxAge: 6 * 60e3, relay: true },
+  alerts: { name: "GOV.UK emergency alerts", short: "GOV.UK emergency alerts", home: "https://www.gov.uk/alerts/current-alerts", url: "https://www.gov.uk/alerts/current-alerts", every: 2 * 60e3, maxAge: 6 * 60e3, relay: true },
   past: { name: "GOV.UK past alerts", short: "GOV.UK past alerts", home: "https://www.gov.uk/alerts/past-alerts", url: "https://www.gov.uk/alerts/feed.atom", every: 60 * 60e3, maxAge: 12 * 3600e3, relay: true },
   tests: { name: "GOV.UK alert announcements", short: "GOV.UK announcements", home: "https://www.gov.uk/alerts/announcements", url: "https://www.gov.uk/alerts/announcements", every: 6 * 3600e3, maxAge: 7 * 3600e3, relay: true },
   operators: { name: "GOV.UK operator test schedule", short: "Operator tests", home: "https://www.gov.uk/alerts/operator-testing", url: "https://www.gov.uk/alerts/operator-testing", every: 6 * 3600e3, maxAge: 7 * 3600e3, relay: true },
-  nrw: { name: "NRW flood warnings", short: "NRW floods (Wales)", home: "https://flood-warning.naturalresources.wales/?culture=en-GB", url: "https://flood-warning.naturalresources.wales/?culture=en-GB", every: 2 * 60e3, maxAge: 40 * 60e3, relay: true },
+  nrw: { name: "NRW flood warnings", short: "NRW floods (Wales)", home: "https://flood-warning.naturalresources.wales/?culture=en-GB", url: "https://flood-warning.naturalresources.wales/?culture=en-GB", every: 2 * 60e3, maxAge: 8 * 60e3, relay: true },
   ea: { name: "Environment Agency flood warnings", short: "EA floods (England)", home: "https://check-for-flooding.service.gov.uk/", url: "https://environment.data.gov.uk/flood-monitoring/id/floods?min-severity=3&_limit=10000", every: 2 * 60e3, maxAge: 8 * 60e3, relay: false },
-  sepa: { name: "SEPA flood warnings", short: "SEPA floods (Scotland)", home: "https://floodline.sepa.org.uk/live-flood-information/", url: "https://beta.sepa.scot/flooding", fallback: "https://www.sepa.org.uk/", every: 2 * 60e3, maxAge: 40 * 60e3, relay: true },
+  sepa: { name: "SEPA flood warnings", short: "SEPA floods (Scotland)", home: "https://floodline.sepa.org.uk/live-flood-information/", url: "https://beta.sepa.scot/flooding", fallback: "https://www.sepa.org.uk/", every: 2 * 60e3, maxAge: 8 * 60e3, relay: true },
   wx: { name: "48-hour forecast", short: "Forecast", home: "https://open-meteo.com/", every: 30 * 60e3, maxAge: 3 * 3600e3, relay: false }
 };
 const DASH_NATIONS = ["England", "Wales", "Scotland", "Northern Ireland"];
@@ -5175,47 +5121,28 @@ function dashFresh(id, now) {
 }
 async function dashFetch(id, target, parse) {
   const src = DASH_SRC[id];
-  const controller = new AbortController();
-  const attempt = async route => {
+  const one = async (u, ms, via) => {
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), ms);
+    let origin = ""; try { origin = new URL(u).origin; } catch (_) {}
     try {
-      const text = await fetchVia(route.u, 16000, controller.signal);
-      return { data: parse(text), text, via: route.via };
-    } catch (error) {
-      if (error?.name === "AbortError" && !controller.signal.aborted) throw new Error("timeout");
-      throw error;
-    }
+      const res = await fetch(u, { signal: ctl.signal, credentials: "omit", referrerPolicy: "no-referrer", cache: "no-store" });
+      if (!res.ok) { if (res.status === 429) NET_COOLDOWNS.set(origin, Date.now() + 120000); throw new Error(res.status === 429 ? "rate" : "HTTP " + res.status); }
+      const text = await res.text();
+      if (text.length > 4000000) throw new Error("too large");
+      return { data: parse(text), text, via };
+    } catch (e) { throw e && e.name === "AbortError" ? new Error("timeout") : e; }
+    finally { clearTimeout(timer); }
   };
-  if (!src.relay) return attempt({u:target, via:"direct"});
-  await collectorLoad();
-  const viaCollector = c => ({ data: parse(c.text), text: c.text, via: "GitHub collector", at: c.at });
-  const ready = collectorGet(target);
-  if (ready) { try { return viaCollector(ready); } catch (_) {} }
-  try { return await dashRelays(id, target, attempt, controller); }
-  catch (error) {
-    const late = collectorGet(target, src.maxAge);
-    if (late) { try { return viaCollector(late); } catch (_) {} }
-    throw error;
-  }
-}
-async function dashRelays(id, target, attempt, controller) {
+  if (!src.relay) return one(target, 12000, "direct");
   if (!S.relayOn || !S.relays.length) throw new Error("relays-off");
-  // Give the last working route a head start. Reuse the regular fetcher's
-  // rate-limit handling and abort the other requests once a valid reply arrives.
-  const url = new URL(target);
-  url.searchParams.set("gtd", Math.floor(Date.now() / 30000));
-  const encoded = encodeURIComponent(url.href);
-  const routes = S.relays.filter(r => (NET_COOLDOWNS.get(new URL(r).origin) || 0) <= Date.now())
-    .map(r => ({k:"dash:" + r, u:r + encoded, via:hostOf(r)}));
-  if (!routes.length) throw new Error("rate");
-  const preferred = DASH.route[id];
-  if (preferred) routes.sort((a, b) => Number(b.k === preferred) - Number(a.k === preferred));
-  try {
-    const result = await hedge(routes, async route => ({...await attempt(route), route:route.k}), controller.signal, 8000);
-    DASH.route[id] = result.route;
-    return result;
-  } finally {
-    controller.abort();
-  }
+  // v3.13: the v3.11 method. These sites send no CORS header, so every relay is asked at once and the
+  // first verified answer wins. The warnings board never queues behind the news feeds.
+  const bust = target + (target.includes("?") ? "&" : "?") + "gtd=" + Math.floor(Date.now() / 60000);
+  const all = S.relays.slice(0, 6);
+  const cool = all.filter(r => { try { return (NET_COOLDOWNS.get(new URL(r).origin) || 0) <= Date.now(); } catch (_) { return false; } });
+  const relays = cool.length ? cool : all;
+  try { return await Promise.any(relays.map(r => one(r + encodeURIComponent(bust), 12000, hostOf(r)))); }
+  catch (agg) { const errs = (agg && agg.errors) || []; throw errs.find(e => e && e.message === "rate") || errs.find(e => e && !(e instanceof TypeError) && e.message !== "timeout") || errs[0] || new Error("unavailable"); }
 }
 function dashReason(id, e) {
   const m = String((e && e.message) || e || "");
@@ -5564,7 +5491,7 @@ async function dashRun(id) {
   DASH.busy.add(id); st.tried = Date.now(); paintDashSoon();
   try {
     const r = await dashLoad(id);
-    Object.assign(st, { ok: true, fails: 0, error: "", at: Math.min(Date.now(), r.at || Date.now()), via: r.via, data: r.data });
+    Object.assign(st, { ok: true, fails: 0, error: "", at: Date.now(), via: r.via, data: r.data });
     if (id === "met") dashMirror("metoffice", r.data.items.map(metFeedItem));
     if (id === "past") { const def = FEEDS.find(f => f.id === "gov-alerts"); if (def) { try { dashMirror("gov-alerts", parseFeed(def, r.text)); } catch (_) {} } }
   } catch (e) {
@@ -5845,17 +5772,49 @@ function testsTile(now) {
   const saved = last ? " Last published date seen: " + new Date(last.at).toLocaleDateString("en-GB", {day:"numeric", month:"short", year:"numeric", timeZone:"Europe/London"}) + ". Confirm it on GOV.UK." : "";
   return [label, busy ? "Checking schedule" : "Schedule not verified", "none", note + saved, href, lt];
 }
-function weatherBlock(now) {
-  const m = dashModel(now), p = dashForecastPlace();
-  const checked = ["met", "ea", "nrw", "sepa"].filter(id => id === "met" ? dashFresh(id, now) : floodCurrent(id, now));
-  let details = '<div class="dash-source-check"><strong>Official weather and flood sources</strong><p class="sm muted">These are separate from the forecast below. A model forecast is not a Met Office warning.</p>';
-  for (const tuple of [metTile(now,null),eaTile(now),nrwTile(now),sepaTile(now),niFloodTile(now)]) {
-    details += '<div class="dash-source-row"><span>' + esc(tuple[0]) + '</span><strong>' + esc(tuple[1]) + '</strong><a href="' + esc(tuple[4]) + '" target="_blank" rel="noopener noreferrer">Official source ↗</a></div>';
+function weatherStatus(now) {
+  const metOn = !S.off.includes("metoffice"), metOk = metOn && dashFresh("met", now);
+  const met = metOk ? (DASH.s.met.data.items || []).filter(w => !w.to || w.to > now) : [];
+  const fresh = FLOOD_NATIONS.filter(([id]) => floodCurrent(id, now));
+  const fl = fresh.reduce((a, [id]) => { const d = DASH.s[id].data; a.severe += d.severe; a.warn += d.warn; a.alert += d.alert; return a; }, { severe: 0, warn: 0, alert: 0 });
+  const c = { red: 0, amber: 0, yellow: 0 }; met.forEach(w => { c[w.level]++; });
+  const parts = [];
+  ["red", "amber", "yellow"].forEach(k => { if (c[k]) parts.push(c[k] + " " + k + " weather warning" + (c[k] === 1 ? "" : "s")); });
+  if (fl.severe) parts.push(fl.severe + " severe flood warning" + (fl.severe === 1 ? "" : "s"));
+  if (fl.warn) parts.push(fl.warn + " flood warning" + (fl.warn === 1 ? "" : "s"));
+  if (fl.alert) parts.push(fl.alert + " flood alert" + (fl.alert === 1 ? "" : "s"));
+  const complete = metOk && fresh.length === FLOOD_NATIONS.length, anyChecked = metOk || fresh.length > 0;
+  const state = c.red || fl.severe ? "bad" : c.amber || c.yellow || fl.warn ? "warn" : fl.alert ? "info" : complete ? "ok" : "none";
+  const value = parts.length ? parts.join(" · ") : complete ? "No warnings in force" : anyChecked ? "None in the sources checked" : DASH.busy.size ? "Checking…" : "Not checked";
+  // Plain-English lines, one per source, so nothing on the board contradicts anything else.
+  const rows = [];
+  const metLine = !metOn ? "switched off in Live wire settings" : !metOk ? dashDown("", "met", "", "", "")[3]
+    : !met.length ? "no warnings in force for the UK"
+    : met.slice(0, 3).map(w => dashCap(w.level) + " " + w.type + ", " + w.region + metTiming(w, now)).join("; ") + (met.length > 3 ? "; and " + (met.length - 3) + " more" : "");
+  rows.push(["Met Office", metLine, DASH_SRC.met.home, metOk ? DASH.s.met.at : 0]);
+  for (const [id, nation] of FLOOD_NATIONS) {
+    const s = DASH.s[id], d = s.data;
+    let line;
+    if (dashSkip(id)) line = "switched off in Live wire settings";
+    else if (floodCurrent(id, now)) line = d.severe || d.warn || d.alert ? floodSum(d).toLowerCase().replace(/ · /g, ", ").replace(/alerts?$/, m => m + " (flooding possible)").replace(/warnings?(?=,|$)/, m => m + (d.warn ? " (flooding expected)" : "")) : "no flood warnings";
+    else line = dashDown("", id, "", "", "")[3];
+    rows.push(["Floods · " + nation, line, DASH_SRC[id].home, floodCurrent(id, now) ? s.at : 0]);
   }
-  details += '</div>';
-  return '<section class="dash-weather s-' + (m.live.length ? 'warn' : checked.length >= 1 ? 'ok' : 'none') + '" id="dashWeather">' +
-    '<div class="dash-weather-heading"><span class="uk-l">Weather outlook · next 48 hours</span><p class="sm muted">Starts automatically with Cardiff as an example. Choose any UK town to personalise the forecast.</p></div>' +
-    wxSection(now) + '<details class="dash-extra dash-verify" id="weatherSourceDetails"><summary>Weather warnings and flood source details</summary>' + details + '</details></section>';
+  const ni = niRain(now);
+  rows.push(["Northern Ireland", !ni.current ? "rain warnings not checked yet (they come from the Met Office feed)" : ni.items.length ? ni.items.length + " rain or thunderstorm warning" + (ni.items.length === 1 ? "" : "s") + " (NI has no live flood-warning feed)" : "no rain warnings (NI has no live flood-warning feed)", NI_FLOOD_HOME, 0]);
+  const latest = rows.reduce((a, r) => Math.max(a, r[3] || 0), 0);
+  return { value, state, rows, latest, alertsOnly: !parts.some(x => !/flood alert/.test(x)) && fl.alert > 0 };
+}
+function weatherBlock(now) {
+  const w = weatherStatus(now);
+  return '<section class="dash-weather wx-one s-' + w.state + '" id="dashWeather">'
+    + '<div class="wx-top"><span class="uk-l">Weather · Met Office warnings, floods and forecast</span>'
+    + '<strong class="wx-value">' + esc(w.value) + '</strong>'
+    + (w.alertsOnly ? '<span class="uk-s">A flood alert means flooding is possible; be prepared. A flood warning means flooding is expected.</span>' : '')
+    + '<ul class="wx-rows">' + w.rows.map(r => '<li><b>' + esc(r[0]) + '</b><span>' + esc(dashCap(r[1])) + '</span><a href="' + esc(r[2]) + '" target="_blank" rel="noopener noreferrer">Official ↗</a></li>').join("") + '</ul>'
+    + '<span class="dash-metadata">' + (w.latest ? 'Checked ' + esc(tLondon(w.latest)) + ' · ' : '') + 'Refreshes automatically while open</span></div>'
+    + wxSection(now)
+    + '<p class="xs muted flood-credit">Flood data: Environment Agency real-time data API (Beta); © SEPA; Natural Resources Wales. The forecast flags are worked out from the forecast and are not official warnings.</p></section>';
 }
 function dashLine(m) {
   const n = m.live.reduce((a,r) => a + (r.n || 1),0);
@@ -5889,8 +5848,7 @@ function dashLine(m) {
 function dashBody() {
   if (!DASH) return '';
   const now = Date.now(), model = dashModel(now), p = model.place;
-  const flood = ukFloodTile(now);
-  const tiles = [alertsTile(now), metTile(now,null), flood, gridTile(now), testsTile(now), sysTile(now)];
+  const tiles = [alertsTile(now), gridTile(now), sysTile(now), testsTile(now)];
 
   const ids = ["alerts","met","ea","nrw","sepa","tests","operators"];
   const verified = ids.filter(id => ["ea","nrw","sepa"].includes(id) ? floodCurrent(id, now) : !dashSkip(id) && dashFresh(id,now));
@@ -5900,13 +5858,13 @@ function dashBody() {
     : next === Infinity ? "Checks switched off" : next > now ? "Next check " + tLondon(next) + " UK" : "Next check due";
   const lamp = verified.length === ids.length ? "lit" : verified.length ? "partial" : "";
   const checkLine = '<div class="dash-coverage"><span><span class="dash-lamp ' + lamp + '"></span>Official feeds ' + verified.length + '/' + ids.length + ' verified</span><span>' + esc(status) + '</span></div>';
-  return dashLine(model) + checkLine + '<div class="uk-grid dash-tiles" id="ukTiles">' + tiles.map(dashTileHtml).join("") + '</div>' + weatherBlock(now);
+  return dashLine(model) + checkLine + weatherBlock(now) + '<div class="uk-grid dash-tiles" id="ukTiles">' + tiles.map(dashTileHtml).join("") + '</div>';
 }
 function dashBoard() {
   return '<section class="panel uk-board dash" id="ukBoard"><div class="row-between"><div><p class="eyebrow">UK official signals</p></div><button type="button" class="chip" data-pullsignals="1">Check now</button></div>'
     + '<div id="dashBody">' + dashBody() + '</div>'
     + '<details class="grid-monitor" id="gridMonitor"><summary>Explore GB frequency history · 15 minutes / 1 hour</summary><div id="gridMonitorBody">' + gridMonitorBody() + '</div></details>'
-    + '<p class="xs muted dash-foot">Live warnings refresh about every two minutes while the desk is open. GOV.UK, the Met Office, NRW and SEPA are read through the desk\u2019s GitHub collector every few minutes, with public relays as a backup. ' + esc(collectorText()) + ' If a check fails, use the official link on that card.</p></section>';
+    + '<p class="xs muted dash-foot">Live warnings refresh about every two minutes while the desk is open. GOV.UK, the Met Office, NRW and SEPA can only be read through public relays, so every relay is asked at once and the first verified answer is used. If a check fails, use the official link beside it.</p></section>';
 }
 let dashTimer = null;
 function paintDashSoon() { if (dashTimer) return; dashTimer = setTimeout(() => { dashTimer = null; paintDash(); }, 150); }

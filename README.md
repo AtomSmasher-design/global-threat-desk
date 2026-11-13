@@ -21,16 +21,13 @@ A free, single-file, offline emergency desk for the UK. One HTML file of about 1
 
 Your settings are saved only in your own browser. Nothing is sent anywhere. Use the export button to back them up.
 
-## Live warnings
-
-Phone browsers are not allowed to read most official warning pages directly. A scheduled job in this repository (`collector/`) reads the Met Office, GOV.UK Emergency Alerts, Natural Resources Wales, SEPA and the news feeds every few minutes and publishes the replies to the `live` branch. The desk reads them from there, so the Brief stays live without relying on free public relays. The desk only downloads from that branch; it never uploads anything.
 
 ## Check your download is genuine
 
 The SHA-256 fingerprint of v3.13 is:
 
 ```
-357a4ed52dce902be8788085d57295f8b36a45ae57f6f7878b2210852f2f2d1a
+24bf0a255980b5dee973505cbc3093df7cb6e54923d9e46961f2e4ed2af096e5
 ```
 
 - Windows: `certutil -hashfile Global_Threat_Desk_UK_Emergency_PREP_v3.13.html SHA256`
