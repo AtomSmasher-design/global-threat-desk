@@ -2,6 +2,8 @@
 
 A free, single-file emergency and major-incident desk for the UK. One HTML file of about 1 MB. Open it in any browser. The plans and checklists work with or without a signal; the live sections update while you are online.
 
+**[Open it in your browser now](https://atomsmasher-design.github.io/global-threat-desk/Global_Threat_Desk_UK_Emergency_PREP_v3.16.html)**: works on phones, nothing to install.
+
 **[Download v3.16](https://github.com/AtomSmasher-design/global-threat-desk/raw/main/Global_Threat_Desk_UK_Emergency_PREP_v3.16.html)** (1.09 MB, SHA-256 below)
 
 ## What it covers
@@ -17,7 +19,8 @@ A free, single-file emergency and major-incident desk for the UK. One HTML file 
 ## How to use it
 
 1. Download `Global_Threat_Desk_UK_Emergency_PREP_v3.16.html` with the link at the top of this page.
-2. Open it in your browser. No installation and no account are needed.
+2. Open it in your browser (Chrome, Firefox, Safari or Edge). No installation and no account are needed.
+   On a phone, if it opens as a page of code, it has opened in a text viewer: use the **Open it in your browser now** link above instead.
 3. Keep a copy on your phone, on a USB stick, and print the survival pack.
 
 ## Privacy
