@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Live global news, cyber incident reports, AI attack watch and UK household preparedness.">
-<title>Global Threat Desk | Major incidents + UK PREP v3.11</title>
+<title>Global Threat Desk | Major incidents + UK PREP v3.13</title>
 <meta name="theme-color" content="#0d1214">
 <style>
 /* Layout: a watch-desk console. Sticky command bar, one reading column, data rendered as wire-style dispatches. Dark-first. */
@@ -711,7 +711,6 @@ button:disabled{opacity:.5;cursor:wait}
 .menu-shop ul{margin:6px 0 0;padding:0;list-style:none}
 .menu-shop li{display:flex;justify-content:space-between;gap:9px;padding:8px 0;border-top:1px solid var(--line);font-size:.85rem;align-items:baseline}
 .menu-note{display:block;margin-top:2px}
-.menu-topup{border-left:3px solid var(--signal);padding:6px 10px;margin:10px 0}
 .menu-src{margin:4px 0 0;color:var(--fg);opacity:.85}
 .menu-protein{border-left:3px solid var(--ok);background:var(--raised);border-radius:0 9px 9px 0;padding:9px 12px;margin:12px 0}
 .menu-protein p{margin:0}
@@ -944,6 +943,7 @@ details.pcat>summary .meter{grid-column:1/-1;margin-top:2px}
 .dash .dash-coverage{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:0 0 12px;font-size:.73rem;color:var(--muted)}
 .dash .dash-lamp{display:inline-block;vertical-align:middle;width:7px;height:7px;border-radius:50%;background:var(--muted);margin-right:7px}
 .dash .dash-lamp.lit{background:var(--ok)}
+.dash .dash-lamp.partial{background:var(--signal)}
 .dash .dash-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
 .dash .dash-tiles>.uk-tile{padding:13px 13px 10px;min-width:0;min-height:122px;box-shadow:none}
 .dash .dash-tiles>.uk-tile>.uk-l{font-size:.68rem;letter-spacing:.06em}
@@ -1717,6 +1717,8 @@ const FEEDS = [
  {id:"eonet",name:"NASA EONET",home:"https://eonet.gsfc.nasa.gov/",tier:"telemetry",group:"Physical",kind:"eonet",url:"https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=8",note:"Open natural events."},
  {id:"who",name:"WHO news",home:"https://www.who.int/news",tier:"official",group:"Physical",kind:"rss",url:"https://www.who.int/rss-feeds/news-english.xml",note:"World Health Organization news."},
  {id:"floods",name:"England flood warnings",home:"https://check-for-flooding.service.gov.uk/",tier:"official",group:"Physical",kind:"floods",url:"https://environment.data.gov.uk/flood-monitoring/id/floods?_limit=12",note:"Warnings in force. Empty means none live."},
+ {id:"azure-status",name:"Microsoft Azure status",home:"https://azure.status.microsoft/en-gb/status/",tier:"official",group:"Official",kind:"rss",statusFeed:true,url:"https://azure.status.microsoft/en-gb/status/feed/",note:"Microsoft's own notices of Azure incidents with wide impact. Azure carries Microsoft 365, Outlook and Teams."},
+ {id:"bbc-tech",name:"BBC Technology",home:"https://www.bbc.co.uk/news/technology",tier:"wire",group:"Wires",kind:"rss",purposeOnly:true,url:"https://feeds.bbci.co.uk/news/technology/rss.xml",note:"Only outage, attack and infrastructure stories are kept."},
  {id:"bbc",name:"BBC World",home:"https://www.bbc.co.uk/news/world",tier:"wire",group:"Wires",kind:"rss",url:"https://feeds.bbci.co.uk/news/world/rss.xml",note:"Context, not a graded incident."}
 ];
 FEEDS.push(...[{"id": "axios-cyber", "name": "Axios · cyber, security and AI", "home": "https://www.axios.com/technology", "tier": "wire", "group": "AI & technology", "kind": "rss", "url": "https://news.google.com/rss/search?q=site%3Aaxios.com%20%28cyber%20OR%20cyberattack%20OR%20hackers%20OR%20ransomware%20OR%20breach%20OR%20AI%29%20when%3A30d&hl=en-GB&gl=GB&ceid=GB%3Aen", "indexed": true, "note": "Axios reporting on cyber attacks, security and AI, found through Google News because Axios's own section feeds no longer work."}, {"id": "metr", "name": "METR", "home": "https://metr.org/blog/", "tier": "research", "group": "AI & technology", "kind": "rss", "url": "https://metr.org/feed.xml", "aiFocus": true, "note": "Independent AI evaluations, capability research and incident investigations. Research is labelled separately from attacks."}, {"id": "talos", "name": "Cisco Talos", "home": "https://blog.talosintelligence.com/", "tier": "research", "group": "Research", "kind": "rss", "url": "https://blog.talosintelligence.com/rss/", "note": "Primary threat investigations and campaign analysis."}, {"id": "wired", "name": "WIRED Security", "home": "https://www.wired.com/category/security/", "tier": "specialist", "group": "Security press", "kind": "rss", "url": "https://www.wired.com/feed/category/security/latest/rss", "note": "Security investigations, surveillance and infrastructure."}]);
@@ -1730,6 +1732,9 @@ FEEDS.push(
   {id:"gdelt-infra", name:"Major outlets · outages and sabotage", home:"https://www.gdeltproject.org/", tier:"wire", group:"Wires", kind:"gdelt", cors:true,
    url:gdeltUrl('("power outage" OR blackout OR "power cut" OR "grid failure" OR "internet outage" OR "undersea cable" OR sabotage OR "water supply" OR "state of emergency" OR "nationwide outage") sourcelang:english'),
    note:"Power, internet, water and transport disruption reported by major outlets, through the GDELT news index. Only headlines that name both the system and the disruption are kept. Reads straight from the browser."},
+  {id:"gdelt-outage", name:"Major outlets · cloud and IT outages", home:"https://www.gdeltproject.org/", tier:"wire", group:"Wires", kind:"gdelt", cors:true,
+   url:gdeltUrl('("Microsoft outage" OR "Azure outage" OR "Microsoft 365 outage" OR "Outlook outage" OR "Teams outage" OR "AWS outage" OR "Amazon Web Services outage" OR "Google Cloud outage" OR "Cloudflare outage" OR "CrowdStrike outage" OR "global outage" OR "worldwide outage" OR "global IT outage") sourcelang:english'),
+   note:"Global failures of Microsoft, AWS, Google, Cloudflare and other services that banks, hospitals and councils run on, reported by major outlets through the GDELT news index."},
   {id:"wiki-events", name:"Wikipedia · current events", home:"https://en.wikipedia.org/wiki/Portal:Current_events", tier:"wire", group:"Wires", kind:"wikievents", cors:true,
    url:"https://en.wikipedia.org/w/api.php?action=parse&page=Portal:Current_events&prop=text&format=json&formatversion=2&origin=*",
    note:"The editor-curated daily record of world events, each with its news source. Only disasters, attacks on infrastructure and cyber items are kept. Reads straight from the browser."}
@@ -1740,9 +1745,68 @@ const GDELT_FALLBACK = {bleep:"bleepingcomputer.com", record:"therecord.media", 
 function gdeltFallbackUrl(id) { const d = GDELT_FALLBACK[id]; return d ? gdeltUrl('domain:' + d + ' (attack OR breach OR ransomware OR hackers OR hacked OR vulnerability OR exploit OR malware OR outage OR blackout OR sabotage)').replace("timespan=3d", "timespan=7d") : null; }
 
 const FEED_TIER = {official:"Official",research:"Research",specialist:"Specialist",wire:"Wire",telemetry:"Telemetry"};
-const DEFAULT_RELAYS = ["https://api.allorigins.win/raw?url=","https://api.codetabs.com/v1/proxy?quest=","https://api.cors.lol/?url="];
+const DASHBOARD_RELAY = "https://allorigins.hexlet.app/raw?disableCache=true&url=";
+const V311_RELAYS = ["https://api.allorigins.win/raw?url=","https://api.codetabs.com/v1/proxy?quest=","https://api.cors.lol/?url="];
 const PREVIOUS_RELAYS = ["https://api.allorigins.win/raw?url=","https://corsproxy.io/?url=","https://api.codetabs.com/v1/proxy?quest="];
+const DEFAULT_RELAYS = [DASHBOARD_RELAY, ...V311_RELAYS];
 const NET_COOLDOWNS = new Map();
+/* v3.13 · GitHub collector. A scheduled job in the desk's own GitHub repository reads every source that a
+   phone browser is not allowed to read directly, every few minutes, and publishes the untouched replies.
+   Any browser can read those files, so the board no longer depends on free public relays. The relays stay
+   as a backup, and sources a browser can read directly are still read directly. */
+const COLLECTOR = {
+  base: "https://raw.githubusercontent.com/AtomSmasher-design/global-threat-desk/live/",
+  files: [{ name: "dash.json", gap: 0, last: 0 }, { name: "feeds.json", gap: 4 * 60e3, last: 0 }], preferAge: 20 * 60e3, keepAge: 6 * 3600e3,
+  entries: new Map(), generatedAt: 0, checkedAt: 0, ok: null, error: "", loading: null
+};
+function collectorLoad(force = false) {
+  if (navigator.onLine === false) return Promise.resolve();
+  if (COLLECTOR.loading) return COLLECTOR.loading;
+  if (!force && Date.now() - COLLECTOR.checkedAt < 60e3) return Promise.resolve();
+  COLLECTOR.loading = (async () => {
+    // The warnings file is small and read every cycle; the news file is read at most every four minutes.
+    const due = COLLECTOR.files.filter(f => Date.now() - f.last >= f.gap);
+    const results = await Promise.allSettled(due.map(async file => {
+      const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 20000);
+      try {
+        const r = await fetch(COLLECTOR.base + file.name, { signal: ctl.signal, credentials: "omit", referrerPolicy: "no-referrer", cache: "no-cache" });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const json = await r.json();
+        file.last = Date.now();
+        return json;
+      } finally { clearTimeout(timer); }
+    }));
+    let any = false;
+    for (const res of results) {
+      const b = res.status === "fulfilled" ? res.value : null;
+      if (!b || !b.entries || typeof b.entries !== "object") continue;
+      any = true;
+      const gen = Date.parse(b.generatedAt);
+      if (Number.isFinite(gen)) COLLECTOR.generatedAt = Math.max(COLLECTOR.generatedAt, gen);
+      for (const [url, e] of Object.entries(b.entries)) {
+        const at = Date.parse(e && e.at);
+        if (!e || e.ok !== true || typeof e.text !== "string" || !Number.isFinite(at)) continue;
+        const old = COLLECTOR.entries.get(url);
+        if (!old || old.at <= at) COLLECTOR.entries.set(url, { text: e.text, at });
+      }
+    }
+    COLLECTOR.checkedAt = Date.now(); COLLECTOR.ok = any;
+    const bad = results.find(r => r.status === "rejected");
+    COLLECTOR.error = any ? "" : bad ? String(bad.reason && bad.reason.name === "AbortError" ? "no answer in time" : (bad.reason && bad.reason.message) || bad.reason) : "unreadable reply";
+  })().catch(() => {}).finally(() => { COLLECTOR.loading = null; });
+  return COLLECTOR.loading;
+}
+function collectorGet(url, maxAge = COLLECTOR.preferAge) {
+  const e = COLLECTOR.entries.get(url);
+  if (!e) return null;
+  const age = Date.now() - e.at;
+  return age >= -5 * 60e3 && age <= maxAge ? e : null;
+}
+function collectorText() {
+  if (COLLECTOR.ok === null) return "GitHub collector: checking.";
+  if (!COLLECTOR.ok) return "GitHub collector: unavailable (" + COLLECTOR.error + "); using direct reads and relays.";
+  return "GitHub collector: last run " + (COLLECTOR.generatedAt ? whenLondon(COLLECTOR.generatedAt) : "time unknown") + ", " + COLLECTOR.entries.size + " sources held.";
+}
 const ITEM_LIMIT = 100;
 const CACHE_LIMIT = 180;
 const RETAIN_DAYS = 30;
@@ -1868,6 +1932,13 @@ function validRelay(value) {
   const url = safeUrl(value);
   return url && url.startsWith("https:") ? url : null;
 }
+function cleanRelays(value) {
+  if (!Array.isArray(value)) return DEFAULT_RELAYS.slice();
+  const urls = [...new Set(value.map(validRelay).filter(Boolean))].slice(0, 6);
+  const saved = JSON.stringify(urls);
+  if ([V311_RELAYS, PREVIOUS_RELAYS].some(old => JSON.stringify(old) === saved)) return DEFAULT_RELAYS.slice();
+  return urls;
+}
 function strings(value, allowed) {
   if (!Array.isArray(value)) return [];
   return [...new Set(value.filter(v => typeof v === "string" && (!allowed || allowed.has(v))))];
@@ -1929,7 +2000,7 @@ function applySnapshot(value) {
   S.interval = [120,300,900].includes(settings.interval) ? settings.interval : 120;
   S.paused = settings.paused === true;
   S.relayOn = settings.relayOn === true;
-  S.relays = Array.isArray(settings.relays) ? [...new Set(settings.relays.map(validRelay).filter(Boolean))].slice(0,6) : DEFAULT_RELAYS.slice();
+  S.relays = cleanRelays(settings.relays);
   S.baseline = Math.round(numberIn(settings.baseline,0,D.baselines.length-1,0));
   S.notify = false;
   B = cleanBlackout(data.blackout);
@@ -2225,7 +2296,7 @@ const PREP_CATS = {
 };
 const TIERS = {1:"Essential", 2:"Recommended", 3:"Extended"};
 const PREP_CAT_NOTE = {
-  food: "Every food line is sized from the 7-day menu above, pack for pack, so the guide and the menu always match. Essential lines are the staples; Recommended and Extended lines bring the variety, and the menu uses all of them. Each line shows the packs it covers.",
+  food: "Suggested quantities come from the selected menu. The food shopping list above gives the exact packs for each ingredient. You can enter your own quantities below.",
   cook: "Every hot meal comes off the portable stove. Buy the stove, the cartridges from the stove calculator, a lighter and a pan together, and keep a CO alarm where you cook.",
   heat: "The living room is heated by an indoor-rated butane cabinet heater. Buy the heater, its bottle and the regulator and hose together. Bedding and hot water bottles cover the night, when the heater is off.",
   power: "Two power banks and a radio cover phones and news. Power stations and solar panels are optional extras.",
@@ -2241,8 +2312,8 @@ const PREP_ITEMS = [
   ["w4", "water", 3, "Portable water filter", "1", "", "portable water filter bottle", "Extra layer for longer emergencies. Boiling remains the official method under a boil water notice."],
   ["w6", "water", 3, "Collapsible water bags, 20 L (optional extra)", "watersoft", "bags", "20 litre collapsible water container food grade", "Optional extra capacity on top of the 25 L containers. Buy, clean and fill from a safe tap in advance; keep sealed, supported and labelled with the fill date."],
   ["f2", "food", 1, "Porridge oats and muesli", "menu", "bags", "porridge oats 1kg", "Porridge on four mornings, oat pancakes on one and warm muesli on another. Oats also make the crumble topping."],
-  ["f3", "food", 1, "UHT semi-skimmed milk, 1 litre cartons", "menu", "litres", "uht semi skimmed milk 1 litre long life", "For porridge, coffee, the bedtime cocoa, the custards and the chocolate sauces: about 3.6 g of protein per 100 ml. Opened UHT milk needs a fridge, so a household of one or two is better off making milk up from the powder per meal."],
-  ["f37", "food", 1, "Dried skimmed milk powder, 250 g tubs", "menu", "tubs", "dried skimmed milk powder marvel", "The quiet protein booster: 35.7 g of protein per 100 g (Marvel). Whisked into the porridge, the cocoa, the creamy pasta and the mash. About 100 g makes a litre of milk. Use an opened tub within 6 weeks."],
+  ["f3", "food", 1, "UHT semi-skimmed milk in small cartons", "menu", "litres", "uht semi skimmed milk 200ml long life cartons", "The UHT option uses 200 mL cartons, counted for each sitting. Finish opened cartons at that sitting if the fridge is off."],
+  ["f37", "food", 1, "Dried skimmed milk powder, 250 g tubs", "menu", "tubs", "dried skimmed milk powder marvel", "For recipes and, if selected, for mixing milk as you need it. Allow about 100 g of powder per litre of water and follow the mixing and storage directions on the pack."],
   ["f36", "food", 1, "Dried whole egg powder, 500 g bags", "menu", "bags", "dried whole egg powder 500g", "48 g of protein per 100 g. Scrambled eggs, oat pancakes, egg-fried rice, egg ribbons in the noodle soup and the binder for the hash cakes. About 12 g of powder and 40 ml of water make one egg. Always cook it."],
   ["f4", "food", 1, "Protein bars, 40 g", "menu", "bars", "nature valley protein bars 40g multipack", "One mid-afternoon every other day, with salted peanuts and raisins on the days between. Nature Valley Protein bars give about 196 kcal and 10 g of protein; they contain peanuts and soya."],
   ["f5", "food", 1, "Manual tin opener (buy two)", "2", "", "manual tin opener", "Electric openers stop with the power. Keep a spare."],
@@ -2368,7 +2439,7 @@ const DEFAULT_CONTACTS = [
   ["Family contact",""],["Neighbour",""],["Meeting point near home",""],["Meeting point away from home",""]
 ];
 function blankPrep() {
-  return {days:7, kcal:2500, baby:false, pets:0, st:{}, cost:{}, qty:{}, retailer:"best", tier:"all", cat:"all", needOnly:false,
+  return {days:7, kcal:2500, milkMode:"powder", baby:false, pets:0, st:{}, cost:{}, qty:{}, retailer:"best", tier:"all", cat:"all", needOnly:false,
     meals:"", bankMah:"", phoneMah:"", eff:65, cookMin:30, burn:"", heatHours:5, heatGrams:200, heatBottleKg:15, stoveGph:160, stoveMin:"", meds:[], contacts:DEFAULT_CONTACTS.map(([label,value]) => ({label, value})), reviewed:null};
 }
 let P = blankPrep();
@@ -2377,7 +2448,8 @@ function cleanNum(v, min, max, fb) { if (v === "" || v === null || v === undefin
 function cleanPrep(value) {
   const v = record(value), out = blankPrep();
   out.days = [3,7,14].includes(v.days) ? v.days : 7;
-  out.kcal = Math.round(cleanNum(v.kcal, 1600, 4000, 2500) / 100) * 100;
+  out.kcal = Math.max(2500, Math.round(cleanNum(v.kcal, 1600, 4000, 2500) / 100) * 100);
+  out.milkMode = v.milkMode === "uht" ? "uht" : "powder";
   out.baby = v.baby === true;
   out.pets = Math.round(cleanNum(v.pets, 0, 10, 0));
   for (const [k, val] of Object.entries(record(v.st))) if (PREP_IDS.has(k) && ["need","ordered","have"].includes(val)) out.st[k] = val;
@@ -2405,7 +2477,10 @@ function cleanPrep(value) {
   return out;
 }
 function savePrep() { store(PREP_KEY, P); }
-function prepVisible(it) { return !it.cond || (it.cond === "baby" ? P.baby : P.pets > 0); }
+function prepVisible(it) {
+  if (it.cond && !(it.cond === "baby" ? P.baby : P.pets > 0)) return false;
+  return it.q !== "menu" || P.qty[it.id] !== undefined || menuQty(it.id) > 0;
+}
 /* ---------- Food: a 7-day rotating menu cooked on the stove (v3.10) ----------
    Built from every food line in the buying guide. Amounts are per person.
    kcal and protein are typical UK label figures, checked 13 November 2026: read the label on what you buy.
@@ -2414,7 +2489,7 @@ function prepVisible(it) { return !it.cond || (it.cond === "baby" ? P.baby : P.p
 const FOODS = {
   oats: ["Porridge oats", "g", 3.75, 1000, "1 kg bag", 0, "f2", "porridge oats 1kg", 0.12],
   muesli: ["Muesli", "g", 3.74, 750, "750 g bag", 0, "f2", "alpen muesli 750g", 0.11],
-  milk: ["UHT semi-skimmed milk", "mL", 0.49, 1000, "1 L carton", 0, "f3", "uht semi skimmed milk 1 litre", 0.036],
+  milk: ["UHT semi-skimmed milk", "mL", 0.49, 200, "200 mL carton", 1, "f3", "uht semi skimmed milk 200ml long life cartons", 0.036],
   smp: ["Dried skimmed milk powder", "g", 3.47, 250, "250 g tub", 0, "f37", "dried skimmed milk powder marvel", 0.357],
   egg: ["Dried whole egg powder", "g", 5.68, 500, "500 g bag", 0, "f36", "dried whole egg powder 500g", 0.48],
   juice: ["Orange juice", "mL", 0.42, 200, "200 mL carton", 1, "f21", "orange juice 200ml cartons long life", 0.005],
@@ -2468,13 +2543,13 @@ const FOOD_GROUPS = [
   ["Also", ["fdmeal","oil"]]
 ];
 const FOOD_NOTES = {
-  milk: "On your own or as a pair, an opened carton has no fridge to go in: make milk up from the powder per meal instead. About 100 g of powder makes a litre.",
+  milk: "Open cartons as needed at each meal. Share any spare milk at that sitting if the fridge is off.",
   egg: "Keep the bag sealed and dry, and always cook it: whisk it with cold water first.",
-  sauce: "On your own, use the whole jar: it replaces the water in a one-pot pasta.",
+  sauce: "For one person, buy a smaller jar where available. Any spare sauce can be shared at the same meal.",
   pb: "Leave out for a peanut allergy."
 };
-const MEAL_NAME = {Breakfast: "Breakfast", Lunch: "Lunch", Dinner: "Dinner", Pudding: "Pudding", Snacks: "Coffee, snacks and cocoa"};
-const MEAL_SITTING = {Breakfast: 0, Lunch: 1, Dinner: 2, Pudding: 2, Snacks: 3};
+const MEAL_NAME = {Breakfast: "Breakfast", Lunch: "Lunch", Dinner: "Dinner", Pudding: "Pudding", Snacks: "Coffee, snacks and cocoa", Sides: "Extra portions"};
+const MEAL_SITTING = {Breakfast: 0, Lunch: 1, Dinner: 2, Pudding: 2, Snacks: 3, Sides: 4};
 const MENU_PLURAL = {pouch: "pouches", pack: "packs", bar: "bars"};
 const UNIT_ONE = {bags: "bag", bottles: "bottle", jars: "jar", packs: "pack", tins: "tin", pouches: "pouch", cartons: "carton", bars: "bar", litres: "litre", tubs: "tub", "tins and packs": "tin or pack"};
 /* MENU: [day title, [[meal, dish, method, full-flame minutes per person, cooking water in litres per person, [[food, amount per person], ...]], ...]]
@@ -2537,13 +2612,13 @@ const MENU = [
      3, 0, [["sardines", 120], ["beans", 200], ["crackers", 50]]],
     ["Dinner", "Chickpea and peach tagine with couscous",
      "Boil the kettle and pour {w:110} ml over the couscous in a bowl, then cover it for 5 minutes. Fry a teaspoon of curry powder per person and a pinch of garlic granules in the oil for 30 seconds, add the sauce, the drained chickpeas and half the peaches with a splash of their juice, and simmer for 6 minutes. Spoon over the couscous and scatter the crushed peanuts on top.",
-     8, 0.11, [["chickpeas", 240], ["sauce", 250], ["peaches", 205], ["couscous", 80], ["oil", 5], ["nuts", 10]]],
+     8, 0.11, [["chickpeas", 240], ["sauce", 250], ["peaches", 205], ["couscous", 80], ["oil", 5], ["nuts", 5]]],
     ["Pudding", "Peach and peanut crumble",
      "The other half of the peaches from the tagine. Toast the oats, peanuts, sugar and oil in the pan for 3 minutes, stirring, until golden and crisp, then tip them out. Warm the peaches in the same pan for a minute and spoon the crumble over.",
-     4, 0, [["peaches", 205], ["oats", 20], ["nuts", 10], ["sugar", 10], ["oil", 5]]],
+     4, 0, [["peaches", 205], ["oats", 30], ["nuts", 5], ["sugar", 10], ["oil", 5]]],
     ["Snacks", "Coffee, hot chocolate, salted peanuts and raisins",
      "Boil the kettle once in the morning for the first coffee and keep the rest hot in the flask for two more mugs through the day. A handful of salted peanuts and raisins mid-afternoon. At bedtime, warm the milk in the pan for 2 minutes and whisk in the milk powder and hot chocolate.",
-     6, 0.6, [["coffee", 5.4], ["milk", 290], ["smp", 10], ["sugar", 5], ["hotchoc", 18], ["nuts", 30], ["dfruit", 20]]]]],
+     6, 0.6, [["coffee", 5.4], ["milk", 290], ["smp", 10], ["sugar", 5], ["hotchoc", 18], ["nuts", 15], ["dfruit", 20]]]]],
   ["Bolognese night", [
     ["Breakfast", "Jam porridge with toasted peanuts",
      "Whisk the milk powder into the milk, then simmer the oats in it with a splash of water for 4 minutes, stirring. Swirl through the jam and top with the peanuts. Orange juice on the side.",
@@ -2597,40 +2672,85 @@ let rationDay = 0;
 function menuPlan() { const out = []; for (let i = 0; i < P.days; i++) out.push(i % MENU.length); return out; }
 function mealKcal(m) { return m[5].reduce((n, [k, a]) => n + FOODS[k][2] * a, 0); }
 function mealProt(m) { return m[5].reduce((n, [k, a]) => n + FOODS[k][8] * a, 0); }
-function dayKcal(i) { return MENU[i][1].reduce((n, m) => n + mealKcal(m), 0); }
-function dayProt(i) { return MENU[i][1].reduce((n, m) => n + mealProt(m), 0); }
+let preparedMenuKey = "", preparedMenu = [];
+function menuMeals(i) {
+  const key = P.kcal + ":" + P.milkMode;
+  if (key !== preparedMenuKey) { preparedMenuKey = key; preparedMenu = []; }
+  if (preparedMenu[i]) return preparedMenu[i];
+
+  const meals = MENU[i][1].map(([slot, name, method, flame, water, ingredients]) => {
+    const amounts = new Map(ingredients);
+    const milk = amounts.get("milk");
+    if (milk && P.milkMode === "powder") {
+      const powder = Math.ceil(milk / 10);
+      amounts.delete("milk");
+      amounts.set("smp", (amounts.get("smp") || 0) + powder);
+      water += milk / 1000;
+      const fortify = ingredients.some(([food]) => food === "smp");
+      method = "For the milk, mix " + powder + " g of powder with " + milk + " mL of water per person."
+        + (fortify ? " Use the rest of the listed powder as directed below." : "") + " " + method;
+    }
+    return [slot, name, method, flame, water, [...amounts]];
+  });
+
+  // Fill a short day with measured portions of existing staples. Leave nuts,
+  // bars, tins and the existing recipes unchanged when the day meets its floor.
+  const shortfall = P.kcal - meals.reduce((n, m) => n + mealKcal(m), 0);
+  if (shortfall > 0) {
+    const grams = (food, share) => Math.ceil(shortfall * share / (5 * FOODS[food][2])) * 5;
+    const oats = grams("oats", 0.35), couscous = grams("couscous", 0.45), crackers = grams("crackers", 0.2);
+    const oatWater = oats * 3, couscousWater = Math.ceil(couscous * 1.4);
+    const method = "Simmer the extra oats with {w:" + oatWater + "} mL water until creamy and serve with breakfast. "
+      + "Pour {w:" + couscousWater + "} mL boiling water over the extra couscous, cover for 5 minutes and fluff. "
+      + "Serve the couscous and oatcakes alongside the main meals. For two servings, use half the dry couscous and water at each meal.";
+    meals.push(["Sides", "Oats, couscous and oatcakes", method, 8, (oatWater + couscousWater) / 1000,
+      [["oats", oats], ["couscous", couscous], ["crackers", crackers]]]);
+  }
+  return preparedMenu[i] = meals;
+}
+function dayKcal(i) { return menuMeals(i).reduce((n, m) => n + mealKcal(m), 0); }
+function dayProt(i) { return menuMeals(i).reduce((n, m) => n + mealProt(m), 0); }
 function menuAvg() { const plan = menuPlan(); return plan.reduce((n, i) => n + dayKcal(i), 0) / plan.length; }
-/* Grams of salted peanuts and raisins a day (about 4.5 kcal per gram) when the chosen target plus 10% is above the menu */
-function menuTopUp() { const gap = P.kcal * 1.1 - menuAvg(); return gap > 0 ? Math.ceil(gap / 45) * 10 : 0; }
-/* Protein per gram of the top-up, half peanuts and half raisins */
-function topUpProt() { return (FOODS.nuts[8] + FOODS.dfruit[8]) / 2; }
-function menuProtAvg() { const plan = menuPlan(); return plan.reduce((n, i) => n + dayProt(i), 0) / plan.length + menuTopUp() * topUpProt(); }
-function menuPerPerson(field) { const plan = menuPlan(); return plan.reduce((n, i) => n + MENU[i][1].reduce((t, m) => t + m[field], 0), 0) / plan.length; }
+function menuProtAvg() { const plan = menuPlan(); return plan.reduce((n, i) => n + dayProt(i), 0) / plan.length; }
+function menuPerPerson(field) { const plan = menuPlan(); return plan.reduce((n, i) => n + menuMeals(i).reduce((t, m) => t + m[field], 0), 0) / plan.length; }
 /* Share of the day's energy from protein (4 kcal per gram) */
 function protShare(g, kcal) { return Math.round(g * 4 / kcal * 100); }
 function kcalProt(kcal, g) { return '~' + metricFormat.format(Math.round(kcal)) + ' kcal · ' + Math.round(g) + ' g protein'; }
 /* Whole packs for the household. Anything that must be finished once opened is counted sitting by sitting
    (dinner and its pudding are one sitting), so a tin is never left open between meals. */
+let menuStockKey = "", menuStock = {};
 function menuShop() {
+  const stockKey = [P.days, P.kcal, P.milkMode, S.people].join(":");
+  if (stockKey === menuStockKey) return menuStock;
   const p = S.people, tot = {};
   const add = (k, amt, packs) => { const t = tot[k] || (tot[k] = {amt: 0, packs: 0}); t.amt += amt; t.packs += packs; };
   menuPlan().forEach(i => {
     const sit = {};
-    MENU[i][1].forEach(m => m[5].forEach(([k, a]) => { const key = MEAL_SITTING[m[0]] + "|" + k; sit[key] = (sit[key] || 0) + a * p; }));
+    menuMeals(i).forEach(m => m[5].forEach(([k, a]) => { const key = MEAL_SITTING[m[0]] + "|" + k; sit[key] = (sit[key] || 0) + a * p; }));
     Object.keys(sit).forEach(key => { const k = key.split("|")[1], f = FOODS[k]; add(k, sit[key], f[5] ? Math.ceil(sit[key] / f[3] - 1e-9) : 0); });
   });
-  const top = menuTopUp();
-  if (top) { add("nuts", top / 2 * p * P.days, 0); add("dfruit", top / 2 * p * P.days, 0); }
   Object.keys(tot).forEach(k => { if (!FOODS[k][5]) tot[k].packs = Math.ceil(tot[k].amt / FOODS[k][3] - 1e-9); });
-  return tot;
+  menuStockKey = stockKey;
+  return menuStock = tot;
 }
-function menuQty(id) { const tot = menuShop(); return Object.keys(tot).filter(k => FOODS[k][6] === id).reduce((n, k) => n + tot[k].packs, 0); }
+function menuQty(id) {
+  const tot = menuShop();
+  if (id === "f3") return (tot.milk?.packs || 0) * FOODS.milk[3] / 1000;
+  return Object.keys(tot).filter(k => FOODS[k][6] === id).reduce((n, k) => n + tot[k].packs, 0);
+}
 function menuBreakdown(id) {
   const tot = menuShop(), keys = Object.keys(FOODS).filter(k => FOODS[k][6] === id && tot[k]);
   return keys.length ? "For the " + P.days + "-day menu: " + keys.map(k => FOODS[k][0] + " " + packCount(k, tot[k].packs)).join(" · ") + "." : "Not used in a " + P.days + "-day plan.";
 }
 function menuAmount(k, a) { const u = FOODS[k][1]; return metricFormat.format(a) + " " + (u === "g" || u === "mL" || a === 1 ? u : (MENU_PLURAL[u] || u)); }
 function menuMethod(text) { return text.replace(/\{w:(\d+)\}/g, (_, n) => metricFormat.format(Number(n) * S.people)); }
+function menuIngredients(m, people) {
+  return m[5].map(([k, a]) => FOODS[k][0] + " " + menuAmount(k, a * people)).join(", ");
+}
+function lowestMenuDay() {
+  const energies = menuPlan().map(dayKcal);
+  return Math.round(Math.min(...energies));
+}
 function packShort(k) { return FOODS[k][4].replace(/\s*\(.*\)$/, ""); }
 function packNoun(k) { return packShort(k).split(" ").pop(); }
 function plural(w) { return MENU_PLURAL[w] || w + "s"; }
@@ -2641,32 +2761,32 @@ function packCount(k, n) {
 }
 function packHint(k, n) { const m = FOODS[k][4].match(/\((.*)\)$/); return packCount(k, n) + (m ? " (" + m[1] + (n > 1 ? " each" : "") + ")" : ""); }
 function menuMealCard(i, j) {
-  const day = MENU[i], m = day[1][j], p = S.people, sit = MEAL_SITTING[m[0]], top = m[0] === "Snacks" ? menuTopUp() : 0;
+  const meals = menuMeals(i), m = meals[j], p = S.people, sit = MEAL_SITTING[m[0]];
   const items = m[5].map(([k, a]) => {
     const f = FOODS[k];
     let hint = "";
     if (f[5]) {
-      const users = day[1].map((x, n) => [x, n]).filter(([x]) => MEAL_SITTING[x[0]] === sit && x[5].some(([kk]) => kk === k));
+      const users = meals.map((x, n) => [x, n]).filter(([x]) => MEAL_SITTING[x[0]] === sit && x[5].some(([kk]) => kk === k));
       if (users[0][1] === j) {
         const need = users.reduce((n, [x]) => n + x[5].filter(([kk]) => kk === k).reduce((t, [, aa]) => t + aa, 0), 0) * p;
         const packs = Math.ceil(need / f[3] - 1e-9);
-        hint = "open " + packHint(k, packs) + (users.length > 1 ? ", shared with the " + MEAL_NAME[users[1][0][0]].toLowerCase() : "") + (packs * f[3] - need > 1e-6 ? ", and use it all" : "");
+        hint = "open " + packHint(k, packs) + (users.length > 1 ? ", shared with the " + MEAL_NAME[users[1][0][0]].toLowerCase() : "") + (packs * f[3] - need > 1e-6 ? ". Share any spare at this sitting" : "");
       } else hint = "from the " + packNoun(k) + " opened for the " + MEAL_NAME[users[0][0][0]].toLowerCase();
     } else if (p > 1) hint = menuAmount(k, a * p) + " for " + p;
     return '<li><span>' + esc(f[0]) + '</span><span class="ration-qty"><b class="amt">' + esc(menuAmount(k, a)) + (p > 1 ? ' each' : '') + '</b>' + (hint ? '<small>' + esc(hint) + '</small>' : '') + '</span></li>';
-  }).join("") + (top ? '<li><span>Extra salted peanuts and raisins for your target</span><span class="ration-qty"><b class="amt">' + top + ' g' + (p > 1 ? ' each' : '') + '</b></span></li>' : '');
-  return '<div class="ration-meal"><div class="row-between"><span class="eyebrow">' + MEAL_NAME[m[0]] + '</span><span class="mono menu-kp">' + kcalProt(mealKcal(m) + top * 4.5, mealProt(m) + top * topUpProt()) + '</span></div>'
+  }).join("");
+  return '<div class="ration-meal"><div class="row-between"><span class="eyebrow">' + MEAL_NAME[m[0]] + '</span><span class="mono menu-kp">' + kcalProt(mealKcal(m), mealProt(m)) + '</span></div>'
     + '<h4 class="dish">' + esc(m[1]) + '</h4><p class="xs ration-how">' + esc(menuMethod(m[2])) + '</p><ul>' + items + '</ul></div>';
 }
 function menuDayView(n) {
-  const i = menuPlan()[n], top = menuTopUp(), k = dayKcal(i) + top * 4.5, g = dayProt(i) + top * topUpProt();
+  const i = menuPlan()[n], k = dayKcal(i), g = dayProt(i);
   return '<div class="menu-day"><div class="menu-day-head"><h4>Day ' + (n + 1) + ' · ' + esc(MENU[i][0]) + '</h4><span class="mono">' + kcalProt(k, g) + ' (' + protShare(g, k) + '% of energy) per person</span></div>'
-    + '<div class="ration-grid">' + MENU[i][1].map((m, j) => menuMealCard(i, j)).join("") + '</div></div>';
+    + '<div class="ration-grid">' + menuMeals(i).map((m, j) => menuMealCard(i, j)).join("") + '</div></div>';
 }
 function menuWeek() {
-  const plan = menuPlan(), shown = Math.min(plan.length, MENU.length), top = menuTopUp();
-  return '<details class="menu-week"><summary>The whole ' + (shown === MENU.length ? 'week' : shown + ' days') + ' at a glance</summary><ul>'
-    + plan.slice(0, shown).map((i, n) => '<li><strong>Day ' + (n + 1) + ' · ' + esc(MENU[i][0]) + '</strong> <span class="muted">' + kcalProt(dayKcal(i) + top * 4.5, dayProt(i) + top * topUpProt()) + '</span><br>' + MENU[i][1].filter(m => m[0] !== "Snacks").map(m => esc(m[1])).join(' · ') + '</li>').join("")
+  const plan = menuPlan(), shown = Math.min(plan.length, MENU.length);
+  return '<details class="menu-week" id="menuOverview"><summary>The whole ' + (shown === MENU.length ? 'week' : shown + ' days') + ' at a glance</summary><ul>'
+    + plan.slice(0, shown).map((i, n) => '<li><strong>Day ' + (n + 1) + ' · ' + esc(MENU[i][0]) + '</strong> <span class="muted">' + kcalProt(dayKcal(i), dayProt(i)) + '</span><br>' + menuMeals(i).filter(m => m[0] !== "Snacks").map(m => esc(m[1])).join(' · ') + '</li>').join("")
     + '</ul>' + (plan.length > MENU.length ? '<p class="xs muted">Days 8 to 14 repeat the same seven days.</p>' : '') + '</details>';
 }
 function menuShopList() {
@@ -2676,7 +2796,7 @@ function menuShopList() {
     + FOOD_GROUPS.map(([g, keys]) => {
       const rows = keys.filter(k => tot[k]);
       return rows.length ? '<h5>' + esc(g) + '</h5><ul>' + rows.map(k => {
-        const f = FOODS[k], t = tot[k], note = FOOD_NOTES[k] && (k !== "milk" || p <= 2) && (k !== "sauce" || p === 1) ? FOOD_NOTES[k] : "";
+        const f = FOODS[k], t = tot[k], note = k !== "sauce" || p === 1 ? FOOD_NOTES[k] : "";
         return '<li><span>' + esc(f[0]) + ' <small class="muted">(' + esc(menuAmount(k, Math.round(t.amt))) + ' used)</small>' + (note ? '<small class="muted menu-note">' + esc(note) + '</small>' : '') + '</span>'
           + '<span class="ration-qty"><b class="amt">' + esc(packCount(k, t.packs)) + '</b> <a target="_blank" rel="noopener noreferrer" title="Find on Amazon UK" href="' + esc(RETAILERS.amazon[1](f[7])) + '">Buy ↗</a></span></li>';
       }).join("") + '</ul>' : '';
@@ -2851,7 +2971,7 @@ function prepDash() {
   const k = (e, n, l) => '<div class="kpi"><p class="eyebrow">' + e + '</p><div class="n">' + n + '</div><div class="l">' + l + '</div></div>';
   return '<div class="prep-dash" id="prepDash">'
     + k('Water to store', metricFormat.format(water) + ' L', containers + ' × 25 L containers. Per person per day: 3 L to drink plus 7 L for cooking and hygiene.')
-    + k('Hot food', metricFormat.format(h * P.kcal) + ' kcal', (h * 3) + ' hot meals for ' + p + (p === 1 ? ' person' : ' people') + ' × ' + d + ' days at ' + metricFormat.format(P.kcal) + ' kcal per adult per day.')
+    + k('Hot food', '~' + metricFormat.format(Math.round(menuAvg() * h)) + ' kcal', (h * 3) + ' hot meals. Daily minimum: ' + metricFormat.format(P.kcal) + ' kcal per adult.')
     + k('Stove gas', f.cartridges + ' × 227 g', 'Butane cartridges: ' + f.min + ' minutes of cooking a day, plus a 25% reserve.')
     + k('Living-room heat', hf.bottles + ' × ' + P.heatBottleKg + ' kg', 'Butane for the indoor heater at ' + P.heatHours + ' h a day.')
     + k('Phone power', banks + ' × 20k', '20,000 mAh USB-C power banks, kept charged, plus cables and a radio.')
@@ -2921,28 +3041,30 @@ const PROT_GROUPS = [
   ["beans, chickpeas and lentils", ["beans","chickpeas","lentils"]]
 ];
 function menuProtSplit() {
-  const plan = menuPlan(), by = {}, top = menuTopUp();
-  plan.forEach(i => MENU[i][1].forEach(m => m[5].forEach(([k, a]) => { by[k] = (by[k] || 0) + FOODS[k][8] * a; })));
+  const plan = menuPlan(), by = {};
+  plan.forEach(i => menuMeals(i).forEach(m => m[5].forEach(([k, a]) => { by[k] = (by[k] || 0) + FOODS[k][8] * a; })));
   Object.keys(by).forEach(k => { by[k] /= plan.length; });
-  if (top) { by.nuts = (by.nuts || 0) + top / 2 * FOODS.nuts[8]; by.dfruit = (by.dfruit || 0) + top / 2 * FOODS.dfruit[8]; }
   const total = Object.keys(by).reduce((n, k) => n + by[k], 0);
   const parts = PROT_GROUPS.map(([label, keys]) => [label, keys.reduce((n, k) => n + (by[k] || 0), 0)]);
   const rest = total - parts.reduce((n, [, g]) => n + g, 0);
   return {total, parts: parts.sort((x, y) => y[1] - x[1]).concat(rest > 0.5 ? [["everything else", rest]] : [])};
 }
 function rationCard() {
-  const p = S.people, d = P.days, plan = menuPlan(), shown = Math.min(d, MENU.length), avg = menuAvg(), top = menuTopUp(), f = stoveFuel();
+  const p = S.people, d = P.days, plan = menuPlan(), shown = Math.min(d, MENU.length), avg = menuAvg(), f = stoveFuel();
   if (rationDay >= shown) rationDay = 0;
-  const required = p * d * P.kcal, withMargin = Math.ceil(required * 1.1), estimated = Math.round((avg + top * 4.5) * p * d);
+  const required = p * d * P.kcal, estimated = Math.round(avg * p * d);
   const water = menuPerPerson(4) * p, mins = Math.round(menuPerPerson(3));
-  const ps = menuProtSplit(), dayK = avg + top * 4.5, minDay = Math.min(...plan.slice(0, shown).map(i => dayProt(i) + top * topUpProt()));
+  const ps = menuProtSplit(), minDay = Math.min(...plan.slice(0, shown).map(dayProt));
+  const choices = [...new Set([2500, 2800, 3000, 3500, 4000, P.kcal])].sort((a, b) => a - b);
   const a = (href, text) => '<a href="' + href + '" target="_blank" rel="noopener noreferrer">' + text + ' ↗</a>';
   const chips = plan.slice(0, shown).map((i, n) => '<button type="button" class="chip' + (n === rationDay ? ' on' : '') + '" data-rday="' + n + '" aria-pressed="' + (n === rationDay) + '">Day ' + (n + 1) + ' · ' + esc(MENU[i][0].replace(/ night$/, '')) + '</button>').join('');
   return '<section class="panel ration-panel" id="foodRation"><p class="eyebrow">Step 2 · hot food · a different menu every day</p><h3>' + d + '-day hot-food menu, cooked on one stove</h3>'
-    + '<p class="sm">' + (shown === MENU.length ? 'Seven different days' : shown + ' different days') + ' built from every food on the buying list: a different breakfast each morning, a quick hot lunch, a proper one-pan dinner, a hot pudding, three coffees and a bedtime cocoa. Every meal is built round a protein: eggs, milk, beans, salted peanuts, corned beef, minced beef, stewed steak, chicken, tuna, mackerel, sardines, chickpeas or lentils. ' + (d > MENU.length ? 'Days 8 to 14 repeat the week. ' : '') + 'Nothing needs a fridge, because every tin is finished at the meal it is opened for. The whole day cooks in about ' + f.min + ' minutes on one burner for ' + p + (p === 1 ? ' person' : ' people') + '; the stove card below works out the gas.</p>'
-    + '<div class="ration-goal"><label>Daily energy target per adult<select data-kcalgoal="1">' + [1800, 2000, 2200, 2500, 2800, 3000, 3500].map(k => '<option value="' + k + '"' + (P.kcal === k ? ' selected' : '') + '>' + k.toLocaleString('en-GB') + ' kcal</option>').join('') + '</select></label><div><small>Minimum for ' + p + (p === 1 ? ' person' : ' people') + ' × ' + d + ' days</small><strong>' + metricFormat.format(required) + ' kcal</strong></div><div><small>With 10% planning buffer</small><strong>' + metricFormat.format(withMargin) + ' kcal</strong></div><div><small>Menu total</small><strong class="' + (estimated >= withMargin ? 'g-confirmed' : 'g-disputed') + '">~' + metricFormat.format(estimated) + ' kcal</strong></div></div>'
-    + (top ? '<p class="sm menu-topup">Your target is above what the menu gives, so each day adds ' + top + ' g of salted peanuts and raisins per person, about ' + metricFormat.format(Math.round(top * 4.5)) + ' kcal. The shopping list includes it.</p>' : '')
-    + '<div class="menu-protein"><p class="sm"><strong>Protein: about ' + Math.round(ps.total) + ' g per person a day</strong>, ' + protShare(ps.total, dayK) + '% of the energy, and never under ' + Math.round(minDay) + ' g on any day. Food labels use 50 g as the adult reference intake, and MyFitnessPal\'s default goal is 20% of energy.</p>'
+    + '<p class="sm">Hot breakfasts, lunches, dinners and puddings from cupboard food. ' + (d > MENU.length ? 'Days 8 to 14 repeat the week. ' : '') + 'Allow about ' + f.min + ' minutes a day on one burner for ' + p + (p === 1 ? ' person.' : ' people.') + '</p>'
+    + '<div class="ration-goal"><label>Daily minimum per adult<select id="menuKcal" data-kcalgoal="1">' + choices.map(k => '<option value="' + k + '"' + (P.kcal === k ? ' selected' : '') + '>' + metricFormat.format(k) + ' kcal</option>').join('') + '</select></label>'
+    + '<label>Milk for cooking and drinks<select id="menuMilk" data-milk-mode="1"><option value="powder"' + (P.milkMode === "powder" ? ' selected' : '') + '>Mix from powder</option><option value="uht"' + (P.milkMode === "uht" ? ' selected' : '') + '>200 mL UHT cartons</option></select></label>'
+    + '<div><small>Lowest day per adult</small><strong>~' + metricFormat.format(lowestMenuDay()) + ' kcal</strong></div><div><small>Menu total for the household</small><strong class="' + (estimated >= required ? 'g-confirmed' : 'g-disputed') + '">~' + metricFormat.format(estimated) + ' kcal</strong></div></div>'
+    + '<p class="xs muted">The menu keeps its usual portions when they meet your minimum. It adds oats, couscous and oatcakes to any day that falls short. The shopping list includes them.</p>'
+    + '<div class="menu-protein"><p class="sm"><strong>Protein: about ' + Math.round(ps.total) + ' g per person a day</strong>, ' + protShare(ps.total, avg) + '% of the energy. The lowest day supplies about ' + Math.round(minDay) + ' g.</p>'
     + '<p class="xs">Where it comes from, per person a day: ' + ps.parts.map(([label, g]) => label + ' ' + Math.round(g) + ' g').join(' · ') + '.</p></div>'
     + '<p class="xs muted">The menu averages about ' + metricFormat.format(Math.round(avg)) + ' kcal per person a day. Energy and protein are typical UK label figures per 100 g, checked on 13 November 2026: Princes corned beef 222 kcal and 25 g protein, Tesco tuna 109 and 24.9 drained, Heinz Beanz 81 and 4.8, KP salted peanuts 615 and 30, Marvel dried skimmed milk 347 and 35.7, dried whole egg 568 and 48, Tesco minced beef and onion 153 and 13.6, Princes stewed steak 117 and 14.5, John West sardines 164 and 17. Tinned chilli runs from 99 kcal (Tesco) to 134 (Stagg), so the menu uses 115. Pears, pineapple, carrots, honey, jam, sugar, oil, coffee and custard powder are counted as no protein, so the totals are slightly low. Read the label on what you buy. Amounts, kcal and protein on the day cards are per person.</p>'
     + '<div class="chips menu-days" role="group" aria-label="Choose a day of the menu">' + chips + '</div>'
@@ -2951,19 +3073,19 @@ function rationCard() {
     + menuShopList()
     + '<div class="ration-extra">'
     + '<div><h4>Fridge and freezer first</h4><p class="sm">When the power goes, cook what is already cold before you start the menu. A closed fridge keeps food safe for up to 4 hours; once it reaches 8 °C or more, eat chilled food within 4 hours. A full freezer stays frozen for up to 48 hours and a half-full one for about 24 (Food Standards Scotland). Cook defrosting meat on the stove until it is piping hot, and keep the doors shut.</p></div>'
-    + '<div><h4>Open it, finish it</h4><p class="sm">Labels on opened tins, jars, pouches and cartons say fridge and two days at most, so this menu never leaves one open: the shopping list counts whole packs meal by meal. On your own, the second half of a tin goes into the same meal, and a whole jar of sauce replaces the water in a one-pot pasta. Cooked rice is never kept. Egg and milk powder are the exceptions: keep them sealed and dry, and Marvel says use an opened tub within 6 weeks.</p></div>'
-    + '<div><h4>Water and gas</h4><p class="sm">About ' + metricFormat.format(Math.round(water * 10) / 10) + ' L of water a day for cooking and hot drinks for ' + p + (p === 1 ? ' person' : ' people') + ', taken from the 7 L per person cooking and hygiene share in Step 1, not on top of it. One-pot pasta cooks in its own sauce and couscous only needs boiled water, so no pan of water is boiled and poured away. About ' + mins + ' minutes of flame per person a day.</p></div>'
+    + '<div><h4>Open packs at the meal</h4><p class="sm">The shopping list rounds tins, jars and UHT cartons up for each sitting. Use the measured recipe amounts and share spare portions at that sitting if the fridge is off. Mix powdered milk as needed and keep the dry powder sealed. Cook rice fresh and serve it straight away.</p></div>'
+    + '<div><h4>Water and gas</h4><p class="sm">About ' + metricFormat.format(Math.round(water * 10) / 10) + ' L of water a day for cooking and hot drinks for ' + p + (p === 1 ? ' person' : ' people') + (P.milkMode === "powder" ? ', including water to mix the milk' : '') + '. This comes from the cooking and hygiene share in Step 1. About ' + mins + ' minutes of flame per person a day before the stove calculator adds heating time.</p></div>'
     + '<div><h4>Swaps</h4><p class="sm">Vegetarian: bean chilli and vegetable curry, a tin of beans or chickpeas for each tin of meat or fish, and an extra egg or 15 g of milk powder where you need the protein back. Peanut allergy: leave out the peanuts and peanut butter, use raisins, jam or honey, choose a protein bar without peanuts, and check the chocolate spread, which is usually made with hazelnuts. Egg allergy: beans on oatcakes in place of the egg dishes. Luncheon meat works in the hash cakes. A freeze-dried meal covers any meal you cannot cook.</p></div>'
     + '<div><h4>Keep it fresh</h4><p class="sm">Keep the food in a cool, dry kitchen cupboard rather than a shed or loft. Cook a few of these meals in normal weeks: it is the surest way to know you like them, and eating the oldest first and replacing it at every review keeps everything inside its best-before date.</p></div></div>'
     + '<div class="action-row"><button type="button" class="btn ghost" data-rationcopy="1">Copy the menu and shopping list</button><a class="btn ghost" target="_blank" rel="noopener noreferrer" href="https://www.foodstandards.gov.scot/consumers/food-safety/at-home/power-cuts">Food Standards Scotland: power cuts ↗</a></div>'
     + '<p class="src-line xs">Ideas and guidance: ' + [a("https://blog.myfitnesspal.com/high-protein-pantry-meals/", "MyFitnessPal: high-protein pantry meals"), a("https://www.bhf.org.uk/informationsupport/heart-matters-magazine/nutrition/ask-the-expert/how-much-protein", "British Heart Foundation: how much protein"), a("https://www.gov.wales/eatwell-guide-html", "Eatwell Guide, Welsh Government"), a("https://www.foodstandards.gov.scot/consumers/food-safety/at-home/storage", "Food Standards Scotland: storing food")].join(' · ') + '</p></section>';
 }
 function rationText() {
-  const p = S.people, d = P.days, h = p * d, f = stoveFuel(), tot = menuShop(), top = menuTopUp(), plan = menuPlan(), shown = Math.min(d, MENU.length), ps = menuProtSplit();
-  const days = plan.slice(0, shown).map((i, n) => 'DAY ' + (n + 1) + ' · ' + MENU[i][0].toUpperCase() + ' (' + kcalProt(dayKcal(i) + top * 4.5, dayProt(i) + top * topUpProt()) + ' per person)\n'
-    + MENU[i][1].map(m => MEAL_NAME[m[0]] + ': ' + m[1] + '. ' + menuMethod(m[2]) + '\n  ' + m[5].map(([k, a]) => FOODS[k][0] + ' ' + menuAmount(k, a)).join(', ')).join('\n')).join('\n\n');
+  const p = S.people, d = P.days, h = p * d, f = stoveFuel(), tot = menuShop(), plan = menuPlan(), shown = Math.min(d, MENU.length);
+  const days = plan.slice(0, shown).map((i, n) => 'DAY ' + (n + 1) + ' · ' + MENU[i][0].toUpperCase() + ' (' + kcalProt(dayKcal(i), dayProt(i)) + ' per adult)\n'
+    + menuMeals(i).map(m => MEAL_NAME[m[0]] + ': ' + m[1] + '. ' + menuMethod(m[2]) + '\n  ' + menuIngredients(m, p)).join('\n')).join('\n\n');
   const list = FOOD_GROUPS.map(([, keys]) => keys.filter(k => tot[k]).map(k => FOODS[k][0] + ': ' + packCount(k, tot[k].packs) + ' | ' + RETAILERS.amazon[1](FOODS[k][7])).join('\n')).filter(Boolean).join('\n');
-  return 'HOT-FOOD MENU · ' + p + (p === 1 ? ' person' : ' people') + ' · ' + d + ' days\nEnergy target: ' + metricFormat.format(P.kcal * h) + ' kcal; plus 10% ' + metricFormat.format(Math.ceil(P.kcal * h * 1.1)) + ' kcal\nMenu: about ' + metricFormat.format(Math.round((menuAvg() + top * 4.5) * h)) + ' kcal (typical label values, check yours)\nProtein: about ' + Math.round(ps.total) + ' g per person a day, ' + protShare(ps.total, menuAvg() + top * 4.5) + '% of the energy\nStove gas: ' + f.cartridges + ' × 227 g butane cartridges (' + f.min + ' min of cooking a day at ' + f.gph + ' g/h, plus 25% reserve)\nAmounts are per person.' + (top ? ' Add ' + top + ' g of salted peanuts and raisins per person a day for your target.' : '') + '\n\n'
+  return 'HOT-FOOD MENU · ' + p + (p === 1 ? ' person' : ' people') + ' · ' + d + ' days\nDaily minimum per adult: ' + metricFormat.format(P.kcal) + ' kcal\nLowest day: about ' + metricFormat.format(lowestMenuDay()) + ' kcal per adult\nMenu: about ' + metricFormat.format(Math.round(menuAvg() * h)) + ' kcal for the household (check your labels)\nProtein: about ' + Math.round(menuProtAvg()) + ' g per adult a day\nCooking and drinks: about ' + metricFormat.format(menuPerPerson(4) * p) + ' L water per day for the household\nStove gas: ' + f.cartridges + ' × 227 g butane cartridges (' + f.min + ' min of cooking a day at ' + f.gph + ' g/h, plus 25% reserve)\nIngredients below serve ' + p + '.\n\n'
     + days + (d > MENU.length ? '\n\nDays 8 to 14 repeat days 1 to 7.' : '') + '\n\nFOOD TO BUY (whole packs)\n' + list + '\nPlus the flavour box: stock cubes, curry powder, mixed herbs, chilli flakes, garlic granules, soy sauce, salt and pepper.';
 }
 function prepSequence() {
@@ -2971,7 +3093,7 @@ function prepSequence() {
   const step = (n, t, text, target) => '<div><strong>' + n + '. ' + t + '</strong><p>' + text + '</p><button type="button" class="cite" data-jump="' + target + '">Go to ' + t.toLowerCase() + ' ↓</button></div>';
   return '<section class="panel early-prep" id="prepSeq"><p class="eyebrow">Do these in order</p><h3>The advance preparation sequence</h3><div class="early-grid">'
     + step(1, 'Water', 'Buy ' + containers + ' food-grade 25 L containers and fill them from the tap now: ' + metricFormat.format(h * 10) + ' L for ' + p + (p === 1 ? ' person' : ' people') + ' over ' + d + ' days.', 'waterFirst')
-    + step(2, 'Hot food', 'Buy the food for the menu (' + metricFormat.format(h * P.kcal) + ' kcal at ' + metricFormat.format(P.kcal) + ' per adult per day) and a portable stove with ' + f.cartridges + ' × 227 g cartridges, a lighter, a pan and a kettle. Three hot meals, a hot pudding and hot drinks a day.', 'foodRation')
+    + step(2, 'Hot food', 'Use the menu shopping list for ' + d + ' days, with a daily minimum of ' + metricFormat.format(P.kcal) + ' kcal per adult. Allow ' + f.cartridges + ' × 227 g cartridges for the stove, and have a lighter, saucepan, frying pan and kettle ready.', 'foodRation')
     + step(3, 'Heat the living room', 'An indoor-rated butane cabinet heater, ' + hf.bottles + ' × ' + P.heatBottleKg + ' kg butane bottle' + (hf.bottles === 1 ? '' : 's') + ', the regulator and hose it specifies, and a CO alarm in the room. Run it once before you need it.', 'heaterPanel')
     + step(4, 'First aid and medicines', 'One fully stocked kit, a home-medicines box and early repeat prescriptions. Keep medicines apart from dressings.', 'firstAid')
     + step(5, 'Power, light and information', 'Charge your power banks, lanterns and phones. Keep head torches, spare AA and AAA cells and a battery or wind-up FM radio ready.', 'buyGuide')
@@ -3059,7 +3181,11 @@ document.addEventListener('change', e => {
     return;
   }
   if (d.kcalgoal) {
-    P.kcal = Math.max(1600, Math.min(4000, Number(t.value) || 2500)); savePrep(); rerenderInPlace();
+    P.kcal = Math.round(cleanNum(t.value, 2500, 4000, 2500) / 100) * 100; savePrep(); rerenderInPlace();
+    return;
+  }
+  if (d.milkMode) {
+    P.milkMode = t.value === "uht" ? "uht" : "powder"; savePrep(); rerenderInPlace();
     return;
   }
   if (d.scalc) {
@@ -3092,8 +3218,11 @@ document.addEventListener('click', e => {
   const rd = e.target.closest('[data-rday]');
   if (rd) {
     rationDay = Number(rd.dataset.rday) || 0;
-    const card = $("#foodRation"); if (card) card.outerHTML = rationCard();
-    const chip = document.querySelector('[data-rday="' + rationDay + '"]'); if (chip) chip.focus({preventScroll: true});
+    const day = $("#foodRation .menu-day"); if (day) day.outerHTML = menuDayView(rationDay);
+    document.querySelectorAll("[data-rday]").forEach(chip => {
+      const active = Number(chip.dataset.rday) === rationDay;
+      chip.classList.toggle("on", active); chip.setAttribute("aria-pressed", active);
+    });
     return;
   }
   const j = e.target.closest('[data-jump]');
@@ -3139,13 +3268,16 @@ function packHTML(parts) {
   }
   if (has("all")) {
     {
-      const h = S.people * P.days, f = heaterFuel(), g = stoveFuel(), menu = Math.round((menuAvg() + menuTopUp() * 4.5) * h), tot = menuShop();
+      const h = S.people * P.days, f = heaterFuel(), g = stoveFuel(), menu = Math.round(menuAvg() * h), tot = menuShop();
       o += '<section><h2>Your numbers</h2><ul>'
         + '<li><strong>Water:</strong> ' + Math.ceil(h * 10 / 25) + ' food-grade 25 L containers filled from the tap (' + metricFormat.format(h * 10) + ' L: 3 L to drink plus 7 L for cooking and hygiene per person per day). Cap, label with the fill date, keep cool and dark, replace self-filled water every six months. Each weighs about 25 kg when full.</li>'
-        + '<li><strong>Hot food:</strong> ' + metricFormat.format(h * P.kcal) + ' kcal minimum, ' + metricFormat.format(Math.ceil(h * P.kcal * 1.1)) + ' kcal with a 10% buffer. The menu below gives about ' + metricFormat.format(menu) + ' kcal, with about ' + Math.round(menuProtAvg()) + ' g of protein per person a day: three hot meals, a hot pudding and hot drinks. Check the energy on each label.</li>'
+        + '<li><strong>Hot food:</strong> ' + metricFormat.format(P.kcal) + ' kcal minimum per adult per day. The menu gives about ' + metricFormat.format(menu) + ' kcal for the household. The lowest day gives about ' + metricFormat.format(lowestMenuDay()) + ' kcal per adult. Allow about ' + metricFormat.format(menuPerPerson(4) * S.people) + ' L water daily for cooking and drinks.</li>'
         + '<li><strong>Stove gas:</strong> ' + g.cartridges + ' × 227 g butane cartridges (' + g.min + ' minutes of cooking a day at ' + g.gph + ' g/h, plus a 25% reserve). Cook where the stove manual allows, with a CO alarm in that room and pans no bigger than the manual says.</li>'
         + '<li><strong>Living-room heater:</strong> ' + f.bottles + ' × ' + P.heatBottleKg + ' kg butane bottle' + (f.bottles === 1 ? '' : 's') + ' for ' + P.heatHours + ' h a day over ' + P.days + ' days. Ventilated room, CO alarm in it, off before sleep.</li></ul>'
-        + '<h3>Hot-food menu</h3><ol>' + menuPlan().slice(0, Math.min(P.days, MENU.length)).map(i => '<li><strong>' + esc(MENU[i][0]) + ':</strong> ' + MENU[i][1].filter(m => m[0] !== "Snacks").map(m => esc(m[1])).join(' · ') + '</li>').join('') + '</ol>' + (P.days > MENU.length ? '<p>Days 8 to 14 repeat the week. Full methods are on the Prepare page and in the copied menu.</p>' : '<p>Full methods are on the Prepare page and in the copied menu.</p>')
+        + '<h3>Hot-food menu</h3><p>Ingredients serve ' + S.people + '. ' + (P.days > MENU.length ? 'Days 8 to 14 repeat the week. ' : '') + 'Open tins, jars and cartons at the meal and share any spare at that sitting if the fridge is off.</p>'
+        + menuPlan().slice(0, Math.min(P.days, MENU.length)).map((i, n) =>
+          '<h3>Day ' + (n + 1) + ' · ' + esc(MENU[i][0]) + '</h3><ul>' + menuMeals(i).map(m =>
+            '<li><strong>' + esc(m[1]) + '</strong><br>' + esc(menuIngredients(m, S.people)) + '<br>' + esc(menuMethod(m[2])) + '</li>').join('') + '</ul>').join('')
         + '<h3>Food to buy (whole packs)</h3><ul>' + FOOD_GROUPS.map(([, keys]) => keys.filter(k => tot[k]).map(k => '<li>' + esc(FOODS[k][0]) + ': ' + esc(packCount(k, tot[k].packs)) + '</li>').join('')).join('') + '<li>Flavour box: stock cubes, curry powder, mixed herbs, chilli flakes, garlic granules, soy sauce, salt and pepper</li></ul></section>';
     }
     o += '<section><h2>Act straight away</h2><ul>' + BLACKOUT_URGENT.map(t => '<li>' + esc(t) + '</li>').join("") + '</ul></section>';
@@ -3242,8 +3374,7 @@ function load() {
   const paused=read("gtd-paused",false);S.paused=paused===true||paused===1;
   const interval=read("gtd-interval",120);S.interval=[120,300,900].includes(interval)?interval:120;
   S.relayOn=read("gtd-relay-on",true)!==false;
-  const relays=read("gtd-relays",null);
-  if(Array.isArray(relays)) S.relays=JSON.stringify(relays)===JSON.stringify(PREVIOUS_RELAYS)?DEFAULT_RELAYS.slice():[...new Set(relays.map(validRelay).filter(Boolean))].slice(0,6);
+  S.relays = cleanRelays(read("gtd-relays", null));
   S.notify=read("gtd-notify",false)===true&&"Notification" in window&&Notification.permission==="granted";
   S.baseline=Math.round(numberIn(read("gtd-baseline",0),0,D.baselines.length-1,0));
   const previous=read("gtd-seen-incidents",null);
@@ -3412,12 +3543,12 @@ function parsePlannedTests(def, html) {
     const block = [node];
     if (/^H[2-4]$/.test(node.tagName)) {
       for (let next = node.nextElementSibling; next && block.length < 12; next = next.nextElementSibling) {
-        if (/^H[1-4]$/.test(next.tagName) && textOf(next)) break;
-        block.push(next); // GOV.UK can include empty headings between a date and its notice.
+        if (/^H[1-4]$/.test(next.tagName) && [...textOf(next).matchAll(datePattern)].length) break;
+        block.push(next); // The public announcement can put an area heading before the alert wording.
       }
     }
     const description = block.map(textOf).filter(Boolean).join(" ");
-    if (!/\btest(?:s|ing)?\b/i.test(description)) continue;
+    if (!/\btest(?:s|ing)?\b/i.test(description) && !(def.id === "alert-announcements" && /\bthe alert will say\b/i.test(description))) continue;
     for (const match of dates) {
       const day = Number(match[1]), month = monthNames.indexOf(match[2].toLowerCase()), year = Number(match[3]);
       const time = Date.UTC(year,month,day,12), date = new Date(time);
@@ -3435,7 +3566,7 @@ function parsePlannedTests(def, html) {
   // blocks before deciding whether an unparsed announcement needs a manual check.
   for (const node of recognised) node.remove();
   const remaining = textOf(main);
-  if (!result.size && /\b(?:there will be|will take place|scheduled for|planned for|next (?:operator|service|national) test|test (?:on|at))\b/i.test(remaining)) {
+  if (/\b(?:there will be|will take place|scheduled for|planned for|next (?:operator|service|national) test|test (?:on|at)|the alert will say)\b/i.test(remaining)) {
     throw new Error("A test announcement was found but its date could not be verified");
   }
   if (!result.size && !recognised.size && !/\b(?:no (?:upcoming |planned |scheduled )?(?:operator |service |national )?tests?|no announcements|there are (?:currently )?no announcements|occasionally carry out operator tests)\b/i.test(remaining)) {
@@ -3464,6 +3595,7 @@ function parseFeed(def, text) {
       out.push({id:url,title:clip((def.prefix||'')+title,240),url,published:published||(def.current?new Date().toISOString():null),updated:validDate(get(n,['updated'])),summary:clip(plain(get(n,['description','summary','encoded','content'])),480)});
     }
     if(nodes.length&&!out.length)throw new Error('No readable articles in feed');
+    if(def.purposeOnly) return out.filter(it=>onPurpose(def,it)).sort((a,b)=>(Date.parse(b.published)||0)-(Date.parse(a.published)||0)).slice(0,ITEM_LIMIT);
     return out.sort((a,b)=>(Date.parse(b.published)||0)-(Date.parse(a.published)||0)).slice(0,ITEM_LIMIT);
   }
   if(def.kind==='gdelt') return parseGdelt(def,text);
@@ -3555,6 +3687,15 @@ function hedge(routes, attempt, signal, stagger) {
 }
 async function pullFeed(def, run) {
   const url = def.kind === "nvd" ? nvdUrl() : typeof def.dyn === "function" ? def.dyn() : def.url;
+  await collectorLoad();
+  const fromCollector = c => {
+    const fetchedAt = new Date(c.at).toISOString();
+    const items = mergeItems(def, parseFeed(def, c.text), L.sources[def.id], fetchedAt);
+    L.mode[def.id] = "collector";
+    return {ok:true, stale:false, items, via:"GitHub collector", limited:false, fetchedAt};
+  };
+  const ready = !def.cors && collectorGet(url);
+  if (ready) { try { return fromCollector(ready); } catch (_) {} }
   const race = new AbortController(), stop = () => race.abort();
   run.controller.signal.addEventListener("abort", stop, {once:true});
   const parse = (route, text) => {
@@ -3591,17 +3732,20 @@ async function pullFeed(def, run) {
     return {ok:true, stale:false, items, via:route.gd ? "GDELT index" : route.json ? "feed relay" : route.k === "direct" ? "direct" : "relay", limited:!!route.json, fetchedAt};
   } catch (error) {
     race.abort();
+    const late = collectorGet(url, COLLECTOR.keepAge);
+    if (late) { try { return fromCollector(late); } catch (_) {} }
     return {ok:false, stale:false, error:error && error.name === "AbortError" ? "Timed out" : error instanceof TypeError ? "Browser could not reach this source" : clip((error && error.message) || "Feed unavailable", 120), items:[], fetchedAt:null};
   } finally {
     run.controller.signal.removeEventListener("abort", stop);
   }
 }
+const LIVE_TABS = ['brief','wire','incidents','ai','sources'];
 function scheduleLiveRender() {
   L.dirty=true;paintClock();
   if(refreshTimer)return;
   refreshTimer=setTimeout(()=>{
     refreshTimer=null;
-    if(['brief','wire','incidents','ai'].includes(S.tab)&&!busyTyping()&&!asking){L.dirty=false;rerenderInPlace();}
+    if(LIVE_TABS.includes(S.tab)&&!busyTyping()&&!asking){L.dirty=false;rerenderInPlace();}
   },350);
 }
 async function pullAll(selectedIds=null) {
@@ -3611,7 +3755,9 @@ async function pullAll(selectedIds=null) {
     paintClock(); return;
   }
   const firstRun=L.known===null;
-  const alertCheck = Array.isArray(selectedIds) && DASH && selectedIds.some(id => DASH_FEED_IDS.includes(id)) ? dashTick(true) : null;
+  await collectorLoad(true);
+  // One cycle: the warnings board and every news section refresh together.
+  const alertCheck = DASH && (!Array.isArray(selectedIds) || selectedIds.some(id => DASH_FEED_IDS.includes(id))) ? dashTick(true) : null;
   const selected=(Array.isArray(selectedIds)?FEEDS.filter(f=>selectedIds.includes(f.id)):FEEDS.slice()).filter(f=>!f.dash);
   if(!selected.length){await alertCheck;return;}
   const run={id:++pullSequence,controller:new AbortController(),relayOn:S.relayOn,relays:S.relays.slice()};
@@ -3621,7 +3767,7 @@ async function pullAll(selectedIds=null) {
   L.completed=0;
   if (!L.known) L.known=new Set();
   const fresh=new Set();
-  const priority=["gb-freq","gb-mix","neso-warn","floods","gov-alerts","metoffice","gdelt-cyber","wiki-events","gdelt-infra","kev","usgs","eonet","ncsc-news","bleep","record","thn","axios-cyber","metr","wired","gdacs","bbc"];
+  const priority=["gb-freq","gb-mix","neso-warn","floods","gov-alerts","metoffice","gdelt-cyber","gdelt-outage","azure-status","bbc-tech","wiki-events","gdelt-infra","kev","usgs","eonet","ncsc-news","bleep","record","thn","axios-cyber","metr","wired","gdacs","bbc"];
   const queue=selected.slice().sort((a,b)=>(priority.indexOf(a.id)<0?99:priority.indexOf(a.id))-(priority.indexOf(b.id)<0?99:priority.indexOf(b.id)));
   paintClock();
   async function worker() {
@@ -3722,7 +3868,7 @@ function paintClock() {
 setInterval(()=>{
   if (!S.paused && !document.hidden && navigator.onLine !== false && Date.now() >= ALERT_POLL.nextAt) pullAlertSignals();
   if(fetchAllowed()&&!L.pulling&&L.nextAt&&Date.now()>=L.nextAt) pullAll();
-  if(L.dirty&&!busyTyping()&&!asking&&['brief','wire','incidents','ai'].includes(S.tab)){L.dirty=false;rerenderInPlace();}
+  if(L.dirty&&!busyTyping()&&!asking&&LIVE_TABS.includes(S.tab)){L.dirty=false;rerenderInPlace();}
   paintClock();
 },1000);
 document.addEventListener("visibilitychange",()=>{
@@ -3773,7 +3919,7 @@ function paintLiveDates() {
 }
 function liveStatusPanel() {
   const c=feedCoverage();
-  return '<div class="live-coverage '+(c.ok?'has-data':'saved-data')+'"><p class="sm" data-freshness>'+esc(freshnessText())+'</p><p class="xs muted">Auto-refresh every '+S.interval+' seconds after a check completes, while open and active. Publisher and relay caches may delay reports. '+(c.limited?c.limited+' feeds currently use a conversion relay with limited depth. ':'')+'See Live wire for each source.</p><button class="chip" data-retryfailed="1"'+(L.pulling?' disabled':'')+'>Retry failed feeds</button></div>';
+  return '<div class="live-coverage '+(c.ok?'has-data':'saved-data')+'"><p class="sm" data-freshness>'+esc(freshnessText())+'</p><p class="xs muted">'+esc(collectorText())+' Auto-refresh every '+S.interval+' seconds after a check completes, while open and active. Publisher and relay caches may delay reports. '+(c.limited?c.limited+' feeds currently use a conversion relay with limited depth. ':'')+'See Live wire for each source.</p><button class="chip" data-retryfailed="1"'+(L.pulling?' disabled':'')+'>Retry failed feeds</button></div>';
 }
 function physicalMajor(r) {
   const t = r.it.title || "", id = r.f.id, both = t + " " + (r.it.summary || "");
@@ -3787,6 +3933,11 @@ function physicalMajor(r) {
   if (id === "neso-warn") return SYSWARN_SERIOUS.test(both) && !/\bcancel/i.test(both);
   return false;
 }
+/* Cloud and IT service outages: a global Microsoft, AWS, Google or Cloudflare failure stops payments,
+   hospitals, councils and emergency lines that depend on it, so it counts as an infrastructure incident. */
+const CLOUD_SVC = /\b(Microsoft(?: 365)?|Office 365|M365|Azure|Outlook|Teams|Exchange Online|OneDrive|SharePoint|Copilot|Xbox Live|AWS|Amazon Web Services|Google Cloud|Gmail|Google Workspace|YouTube|Cloudflare|CrowdStrike|Akamai|Fastly|Oracle Cloud|iCloud|WhatsApp|Facebook|Instagram|Starlink|Visa|Mastercard|PayPal|Stripe|cloud (?:services?|providers?|platforms?|computing)|data cent(?:re|er)s?|DNS|IT (?:systems?|outage|failure|meltdown)|email services?)\b/;
+const CLOUD_DOWN = /\b(outages?|is down|are down|went down|goes down|down for|down across|down worldwide|down globally|offline|disrupt\w*|unavailable|knocked out|crash(?:es|ed)?|unresponsive|blackouts?|not working|service (?:failure|problems|issues)|connectivity issues|meltdown|cannot access|can't access|without access|locked out)\b/i;
+const CLOUD_BIG = /\b(Microsoft|Azure|AWS|Amazon Web Services|Google Cloud|Cloudflare|CrowdStrike|Akamai)\b/;
 function classifyReport(r) {
   const title = r.it.title || "", text = title + " " + (r.it.summary || ""), f = r.f;
   const ai = !!f.aiFocus || /\b(AI|artificial intelligence|machine learning|LLMs?|agentic|autonomous agents?|OpenAI|ChatGPT|Anthropic|Claude|DeepSeek|Gemini|Copilot|METR)\b/i.test(text);
@@ -3805,9 +3956,11 @@ function classifyReport(r) {
   const hazard = physicalMajor(r) || (f.kind === "wikievents" && /^Disasters and accidents/.test(r.it.summary || ""));
   const infraHit = /\b((?:critical|national|energy|water|transport|public|digital) infrastructure|power|electricity|energy|grids?|blackouts?|utilit\w*|water|sewage|dams?|gas (?:supply|network|pipeline)|pipelines?|oil|fuel|refiner\w*|nuclear|telecoms?|mobile networks?|broadband|internet|undersea cables?|subsea cables?|satellites?|GPS|airports?|airlines?|flights|air traffic|rail(?:ways?|roads?)?|trains?|metro|ports?|shipping|logistics|transport\w*|hospitals?|healthcare|health service|NHS|ambulance|emergency (?:services|alerts?|systems?)|911|999|banks?|banking|payments?|cash machines|ATMs?|stock exchange|supermarkets?|grocer\w*|food (?:supply|chain)|cold chain|refrigerat\w*|freezers?|fridges?|blood|plasma|pharmac\w*|factor(?:y|ies)|industrial control|ICS|SCADA|OT|manufactur\w*|government|ministr\w*|councils?|elections?|military|defen[cs]e|schools?|universit\w*)\b/i.test(text), infraTitle = /\b((?:critical|national|energy|water|transport|public|digital) infrastructure|power|electricity|energy|grids?|blackouts?|utilit\w*|water|sewage|dams?|gas (?:supply|network|pipeline)|pipelines?|oil|fuel|refiner\w*|nuclear|telecoms?|mobile networks?|broadband|internet|undersea cables?|subsea cables?|satellites?|GPS|airports?|airlines?|flights|air traffic|rail(?:ways?|roads?)?|trains?|metro|ports?|shipping|logistics|transport\w*|hospitals?|healthcare|health service|NHS|ambulance|emergency (?:services|alerts?|systems?)|911|999|banks?|banking|payments?|cash machines|ATMs?|stock exchange|supermarkets?|grocer\w*|food (?:supply|chain)|cold chain|refrigerat\w*|freezers?|fridges?|blood|plasma|pharmac\w*|factor(?:y|ies)|industrial control|ICS|SCADA|OT|manufactur\w*|government|ministr\w*|councils?|elections?|military|defen[cs]e|schools?|universit\w*)\b/i.test(title);
   const infra = !followup && !exercise && !roundup && infraTitle && /\b(attack\w*|strikes?|struck|sabotage\w*|damag\w*|disrupt\w*|outages?|blackouts?|shut ?down|shut|knocked out|cut off|collaps\w*|fail\w*|hack\w*|breach\w*|ransomware|malware|wiper|compromis\w*|cyber\w*|bomb threats?|grounded|halted|suspended|jamm\w*|spoof\w*|explosions?|evacuat\w*|state of emergency|defrost\w*|tamper\w*|hijack\w*|intrusions?|ddos)\b/i.test(title);
-  const major = (incident && !followup && (impact || infraHit)) || hazard || infra;
+  const cloudOut = !followup && !exercise && !roundup && (!!f.statusFeed || CLOUD_SVC.test(title) && CLOUD_DOWN.test(title));
+  const cloudBig = cloudOut && (!!f.statusFeed || CLOUD_BIG.test(title) || /\b(global|worldwide|nationwide|millions|thousands|across (?:the )?(?:UK|US|Europe|world))\b/i.test(title));
+  const major = (incident && !followup && (impact || infraHit)) || hazard || infra || cloudBig;
   const advisory = !incident && !hazard && !infra && (cyber || f.kind === "kev" || f.kind === "nvd");
-  return {uk: ukHit(r, text), ai, cyber, incident: incident || hazard || infra, major, hazard, infra, advisory, kind: hazard ? "hazard" : incident ? "incident" : infra ? "infrastructure" : ai ? "research" : advisory ? "advisory" : "news"};
+  return {uk: ukHit(r, text), ai, cyber, incident: incident || hazard || infra || cloudOut, major, hazard, infra: infra || cloudOut, cloud: cloudOut, advisory: advisory && !cloudOut, kind: cloudOut && !incident ? "infrastructure" : hazard ? "hazard" : incident ? "incident" : infra ? "infrastructure" : ai ? "research" : advisory ? "advisory" : "news"};
 }
 function incidentPriority(r) {
   if (!r.flags.incident) return 0;
@@ -3816,6 +3969,7 @@ function incidentPriority(r) {
   const essential = /\b(?:critical infrastructure|power (?:grid|plant|supply)|electricity|water (?:supply|treatment|utilit\w*)|hospitals?|NHS|emergency (?:services|alerts?)|food (?:supply|chain)|cold chain|refrigerat\w*|telecoms?|rail network|airports?)\b/i.test(text);
   const widespread = /\b(?:nationwide|national emergency|multiple countries|several countries|across (?:\d+|multiple|several) (?:countries|states)|millions? of (?:people|households|patients)|mass exploitation)\b/i.test(text);
   const scale = /\b(?:billions?|\d[\d.,]*\s*million\s+(?:people|users|customers|patients|records|accounts)|(?:hundreds|thousands) of (?:organisations|organizations|companies|victims)|supply[- ]chain|state[- ](?:backed|sponsored|linked))\b/i.test(text);
+  if (r.flags.cloud && /\b(global|worldwide|millions|multiple countries|across (?:the )?world)\b/i.test(text)) return 3;
   if ((essential && disruption) || (widespread && disruption) || (r.flags.hazard && /\b(?:red warning|severe flood warning|M [78]\.\d|PHEIC)\b/i.test(text))) return 3;
   if (scale || widespread) return 2;
   return r.flags.major ? 1 : 0;
@@ -4104,7 +4258,7 @@ function brief() {
     + '<div class="brief-grid lower-grid">' + askPanel() + '</div>'
     + '<details class="panel supporting" id="figures"><summary>Figures highlighted in the original brief</summary><div class="kpis">' + D.kpis.map(k => '<div class="kpi"><div class="n">' + esc(k.n) + '</div><div class="l">' + esc(k.l) + '</div></div>').join("") + '</div></details>'
     + '<details class="panel supporting" id="claimLimits"><summary>Scope of the assessment</summary><ul class="stack">' + D.notClaims.map(t => '<li class="rule sm">' + esc(t) + '</li>').join("") + '</ul></details>'
-    + '<footer class="note">Dated record ' + esc(D.cutoff) + '. Live reports refresh while the desk is open and connected. The record, the chart and the household tools work offline. Version 3.8, UK flood coverage updated 13 November 2026.</footer>';
+    + '<footer class="note">Dated record ' + esc(D.cutoff) + '. Live reports refresh while the desk is open and connected. The record, the chart and the household tools work offline. Version 3.13.</footer>';
 }
 function askPanel() {
   const qs = ["What is new on the feeds?","What if power is off for 72 hours?","How strong is the AI evidence?","What should I stock first?"];
@@ -4957,14 +5111,14 @@ const DASH_KEY = "gtd-dash-v1";
 const DASH_PLACE_KEY = "gtd-dash-place";
 const DASH_FEED_IDS = ["metoffice", "gov-alerts"];
 const DASH_SRC = {
-  met: { name: "Met Office weather warnings", short: "Met Office weather", home: "https://www.metoffice.gov.uk/weather/warnings-and-advice/uk-warnings", url: "https://www.metoffice.gov.uk/public/data/PWSCache/WarningsRSS/Region/UK", every: 2 * 60e3, maxAge: 6 * 60e3, relay: true },
-  alerts: { name: "GOV.UK emergency alerts", short: "GOV.UK emergency alerts", home: "https://www.gov.uk/alerts/current-alerts", url: "https://www.gov.uk/alerts/current-alerts", every: 2 * 60e3, maxAge: 6 * 60e3, relay: true },
+  met: { name: "Met Office weather warnings", short: "Met Office weather", home: "https://www.metoffice.gov.uk/weather/warnings-and-advice/uk-warnings", url: "https://www.metoffice.gov.uk/public/data/PWSCache/WarningsRSS/Region/UK", every: 2 * 60e3, maxAge: 40 * 60e3, relay: true },
+  alerts: { name: "GOV.UK emergency alerts", short: "GOV.UK emergency alerts", home: "https://www.gov.uk/alerts/current-alerts", url: "https://www.gov.uk/alerts/current-alerts", every: 2 * 60e3, maxAge: 40 * 60e3, relay: true },
   past: { name: "GOV.UK past alerts", short: "GOV.UK past alerts", home: "https://www.gov.uk/alerts/past-alerts", url: "https://www.gov.uk/alerts/feed.atom", every: 60 * 60e3, maxAge: 12 * 3600e3, relay: true },
   tests: { name: "GOV.UK alert announcements", short: "GOV.UK announcements", home: "https://www.gov.uk/alerts/announcements", url: "https://www.gov.uk/alerts/announcements", every: 6 * 3600e3, maxAge: 7 * 3600e3, relay: true },
   operators: { name: "GOV.UK operator test schedule", short: "Operator tests", home: "https://www.gov.uk/alerts/operator-testing", url: "https://www.gov.uk/alerts/operator-testing", every: 6 * 3600e3, maxAge: 7 * 3600e3, relay: true },
-  nrw: { name: "NRW flood warnings", short: "NRW floods (Wales)", home: "https://flood-warning.naturalresources.wales/?culture=en-GB", url: "https://flood-warning.naturalresources.wales/?culture=en-GB", every: 2 * 60e3, maxAge: 8 * 60e3, relay: true },
+  nrw: { name: "NRW flood warnings", short: "NRW floods (Wales)", home: "https://flood-warning.naturalresources.wales/?culture=en-GB", url: "https://flood-warning.naturalresources.wales/?culture=en-GB", every: 2 * 60e3, maxAge: 40 * 60e3, relay: true },
   ea: { name: "Environment Agency flood warnings", short: "EA floods (England)", home: "https://check-for-flooding.service.gov.uk/", url: "https://environment.data.gov.uk/flood-monitoring/id/floods?min-severity=3&_limit=10000", every: 2 * 60e3, maxAge: 8 * 60e3, relay: false },
-  sepa: { name: "SEPA flood warnings", short: "SEPA floods (Scotland)", home: "https://floodline.sepa.org.uk/live-flood-information/", url: "https://www.sepa.org.uk/", every: 2 * 60e3, maxAge: 8 * 60e3, relay: true },
+  sepa: { name: "SEPA flood warnings", short: "SEPA floods (Scotland)", home: "https://floodline.sepa.org.uk/live-flood-information/", url: "https://beta.sepa.scot/flooding", fallback: "https://www.sepa.org.uk/", every: 2 * 60e3, maxAge: 40 * 60e3, relay: true },
   wx: { name: "48-hour forecast", short: "Forecast", home: "https://open-meteo.com/", every: 30 * 60e3, maxAge: 3 * 3600e3, relay: false }
 };
 const DASH_NATIONS = ["England", "Wales", "Scotland", "Northern Ireland"];
@@ -5015,36 +5169,61 @@ function dashPlaceKey(p) { return p ? Number(p.lat).toFixed(2) + "," + Number(p.
 function dashPlaceNames(p) { return p ? [...(p.districts || []), p.county || ""].map(dashNorm).filter(Boolean) : []; }
 
 /* ---------- reading the sources ---------- */
-function dashFresh(id, now) { const s = DASH.s[id]; return !!(navigator.onLine !== false && s && s.ok !== false && s.at && s.data && s.at <= now + 60000 && now - s.at <= DASH_SRC[id].maxAge); }
+function dashFresh(id, now) {
+  const s = DASH.s[id];
+  return !!(navigator.onLine !== false && s?.ok === true && s.data && s.at > 0 && s.at <= now + 60000 && now - s.at <= DASH_SRC[id].maxAge);
+}
 async function dashFetch(id, target, parse) {
   const src = DASH_SRC[id];
-  const one = async (u, ms, via) => {
-    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), ms);
-    let origin = ""; try { origin = new URL(u).origin; } catch (_) {}
+  const controller = new AbortController();
+  const attempt = async route => {
     try {
-      const res = await fetch(u, { signal: ctl.signal, credentials: "omit", referrerPolicy: "no-referrer", cache: "no-store" });
-      if (!res.ok) { if (res.status === 429) NET_COOLDOWNS.set(origin, Date.now() + 120000); throw new Error(res.status === 429 ? "rate" : "HTTP " + res.status); }
-      const text = await res.text();
-      if (text.length > 4000000) throw new Error("too large");
-      return { data: parse(text), text, via };
-    } catch (e) { throw e && e.name === "AbortError" ? new Error("timeout") : e; }
-    finally { clearTimeout(timer); }
+      const text = await fetchVia(route.u, 16000, controller.signal);
+      return { data: parse(text), text, via: route.via };
+    } catch (error) {
+      if (error?.name === "AbortError" && !controller.signal.aborted) throw new Error("timeout");
+      throw error;
+    }
   };
-  if (!src.relay) return one(target, 12000, "direct");
-  if (!S.relayOn) throw new Error("relays-off");
-  // These sites send no CORS header (checked 11 Nov 2026). All relays are asked at once; the first verified answer wins.
-  const bust = target + (target.includes("?") ? "&" : "?") + "gtd=" + Math.floor(Date.now() / 60000);
-  const relays = S.relays.slice(0, 6).filter(r => { try { return (NET_COOLDOWNS.get(new URL(r).origin) || 0) <= Date.now(); } catch (_) { return false; } });
-  if (!relays.length) throw new Error("rate");
-  try { return await Promise.any(relays.map(r => one(r + encodeURIComponent(bust), 10000, hostOf(r)))); }
-  catch (agg) { const errs = (agg && agg.errors) || []; throw errs.find(e => e && e.message === "rate") || errs.find(e => e && !(e instanceof TypeError)) || errs[0] || new Error("unavailable"); }
+  if (!src.relay) return attempt({u:target, via:"direct"});
+  await collectorLoad();
+  const viaCollector = c => ({ data: parse(c.text), text: c.text, via: "GitHub collector", at: c.at });
+  const ready = collectorGet(target);
+  if (ready) { try { return viaCollector(ready); } catch (_) {} }
+  try { return await dashRelays(id, target, attempt, controller); }
+  catch (error) {
+    const late = collectorGet(target, src.maxAge);
+    if (late) { try { return viaCollector(late); } catch (_) {} }
+    throw error;
+  }
+}
+async function dashRelays(id, target, attempt, controller) {
+  if (!S.relayOn || !S.relays.length) throw new Error("relays-off");
+  // Give the last working route a head start. Reuse the regular fetcher's
+  // rate-limit handling and abort the other requests once a valid reply arrives.
+  const url = new URL(target);
+  url.searchParams.set("gtd", Math.floor(Date.now() / 30000));
+  const encoded = encodeURIComponent(url.href);
+  const routes = S.relays.filter(r => (NET_COOLDOWNS.get(new URL(r).origin) || 0) <= Date.now())
+    .map(r => ({k:"dash:" + r, u:r + encoded, via:hostOf(r)}));
+  if (!routes.length) throw new Error("rate");
+  const preferred = DASH.route[id];
+  if (preferred) routes.sort((a, b) => Number(b.k === preferred) - Number(a.k === preferred));
+  try {
+    const result = await hedge(routes, async route => ({...await attempt(route), route:route.k}), controller.signal, 8000);
+    DASH.route[id] = result.route;
+    return result;
+  } finally {
+    controller.abort();
+  }
 }
 function dashReason(id, e) {
   const m = String((e && e.message) || e || "");
   if (navigator.onLine === false) return "this device is offline";
   if (m === "relays-off") return "relay services are switched off in Live wire settings, and this site cannot be read directly by a browser";
-  if (m === "rate") return "the relay services asked the desk to slow down";
+  if (m === "rate" || /HTTP 429|rate limit/i.test(m)) return "the connection is rate limited";
   if (m === "timeout") return "no answer in time";
+  if (m === "stale-source") return "the source update time could not be verified";
   if (/^HTTP \d/.test(m)) return "the source answered with an error (" + m.slice(5) + ")";
   if (m === "No place set") return "no place set";
   if (e instanceof TypeError || /fetch|network|load failed/i.test(m)) return DASH_SRC[id].relay ? "could not reach it through the relay services" : "could not connect";
@@ -5061,7 +5240,7 @@ function parseMetFeed(text) {
     const get = n => { const e = node.querySelector(n); return e ? e.textContent.replace(/\s+/g, " ").trim() : ""; };
     const title = plain(get("title")).replace(/\s+/g, " ").trim(), desc = plain(get("description")).replace(/\s+/g, " ").trim();
     const m = title.match(/^(red|amber|yellow)\s+warning\s+of\s+(.+?)\s+affecting\s+(.+)$/i);
-    if (!m) continue;
+    if (!m) throw new Error("Unrecognised Met Office warning");
     const v = metValidity(desc, now);
     if (v && v.to <= now) continue; // ended: never shown as live, whatever a relay returns
     const colon = desc.indexOf(":"), cut = desc.search(/\s+valid from\s/i);
@@ -5110,8 +5289,9 @@ function parseCurrentAlerts(html) {
   const doc = new DOMParser().parseFromString(String(html), "text/html");
   const h1 = doc.querySelector("h1"), head = h1 ? h1.textContent.replace(/\s+/g, " ").trim() : "";
   if (!/current alerts|rhybuddion cyfredol/i.test(head)) throw new Error("Not the current alerts page");
-  const main = doc.querySelector("main") || doc.body, txt = (main.textContent || "").replace(/\s+/g, " ");
-  if (/there are no current alerts/i.test(txt)) return { items: [] };
+  const main = doc.querySelector("main") || doc.body;
+  const textOf = e => e.textContent.replace(/\s+/g, " ").trim();
+  const headings = [...main.querySelectorAll(".alerts-alert__title")];
   const seen = new Set(), items = [];
   for (const a of main.querySelectorAll("a[href]")) {
     let u;
@@ -5119,6 +5299,14 @@ function parseCurrentAlerts(html) {
     if (!/^https:\/\/www\.gov\.uk\/alerts\/\d{1,2}-[a-z]{3}-\d{4}(?:-\d+)?$/i.test(u) || seen.has(u)) continue;
     seen.add(u); items.push({ title: clip(a.textContent, 160), url: u });
   }
+  if (headings.length === 1 && !items.length) {
+    // GOV.UK renders a single current alert in full, without a date-slug link.
+    const card = headings[0].closest(".alerts-icon__container");
+    const area = card && [...card.querySelectorAll("p")].map(textOf).find(t => /^This alert was sent to /i.test(t));
+    items.push({ title: clip(area || textOf(headings[0]), 160), url: DASH_SRC.alerts.home });
+  }
+  if (headings.length > items.length) throw new Error("Could not read every current alert");
+  if (!items.length && [...main.querySelectorAll("p")].some(p => /^There are no current alerts\.?$/i.test(textOf(p)))) return { items: [] };
   if (!items.length) throw new Error("Could not read the current alerts list");
   return { items: items.slice(0, 20) };
 }
@@ -5154,6 +5342,7 @@ function parseNrwPage(html) {
   let updated = null;
   const up = txt.match(/last updated\s+(\d{1,2}):(\d{2})\s+(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/i);
   if (up) { const mo = DASH_MON[up[4].slice(0, 3).toLowerCase()]; if (mo !== undefined) updated = dashLondonTime(Number(up[5]), mo, Number(up[3]), Number(up[1]), Number(up[2])); }
+  if (!Number.isFinite(updated)) throw new Error("Missing NRW update time");
   return { severe, warn, alert, updated };
 }
 function nrwCurrent(now) {
@@ -5164,12 +5353,17 @@ function nrwCurrent(now) {
 function parseSepaPage(html) {
   const doc = new DOMParser().parseFromString(String(html), "text/html");
   const txt = (doc.body ? doc.body.textContent : "").replace(/\s+/g, " ");
-  if (!/Scottish Environment Protection Agency/i.test(txt) || !/Live flood information/i.test(txt)) throw new Error("Not the SEPA flood information page");
-  const labels = [...doc.querySelectorAll(".card-flood-text")].map(e => e.textContent.replace(/\s+/g, " ").trim());
+  const status = doc.querySelector(".flooding-alert-box .floodWarningsStatus");
+  if (!/Scottish Environment Protection Agency/i.test(doc.title + " " + txt) || (!status && !/Live flood information/i.test(txt))) throw new Error("Not the SEPA flood information page");
+  const labels = status ? [...status.querySelectorAll(".floodWarningsStatusItem")].map(e => {
+    const n = e.querySelector(".floodWarningsStatusCellNumber"), label = e.querySelector(".floodWarningsStatusCellText");
+    return n && label ? n.textContent.trim() + " " + label.textContent.trim().replace(/\s+/g, " ") : "";
+  }) : [...doc.querySelectorAll(".card-flood-text")].map(e => e.textContent.replace(/\s+/g, " ").trim());
   const count = re => { const matches = labels.map(t => t.match(re)).filter(Boolean); return matches.length === 1 ? Number(matches[0][1]) : null; };
   const severe = count(/^(\d+) Severe Flood Warnings?$/i), warn = count(/^(\d+) Flood Warnings?$/i), alert = count(/^(\d+) Flood Alerts?$/i);
   if ([severe, warn, alert].some(n => n === null || n > 5000)) throw new Error("Could not read the SEPA counts");
-  const m = txt.match(/Last update(?:d)?:?\s+(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\s+(\d{4})\s+at\s+(\d{1,2}):(\d{2})/i);
+  const stamp = status?.querySelector(".floodWarningsStatusUpdated")?.textContent.replace(/\s+/g, " ") || txt;
+  const m = stamp.match(/Last update(?:d)?:?\s+(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\s+(\d{4})\s+at\s+(\d{1,2}):(\d{2})/i);
   const mo = m && DASH_MON[m[2].slice(0, 3).toLowerCase()];
   if (!m || mo === undefined) throw new Error("Missing SEPA update time");
   return { severe, warn, alert, updated: dashLondonTime(+m[3], mo, +m[1], +m[4], +m[5]) };
@@ -5297,14 +5491,15 @@ function wxBlocks(rows) {
 }
 
 /* ---------- scheduling ---------- */
-function dashDue(id, now) {
+function dashNextAt(id) {
   const st = DASH.s[id], src = DASH_SRC[id];
   if (st.ok === false) {
-    const wait = (id === "tests" || id === "operators") ? src.every : id === "past" ? 30 * 60e3 : Math.min(10 * 60e3, 60e3 * 2 ** Math.min(Math.max(0, st.fails - 1), 4));
-    return now >= (st.tried || 0) + wait;
+    const wait = Math.min(10 * 60e3, 60e3 * 2 ** Math.min(Math.max(0, st.fails - 1), 4));
+    return (st.tried || 0) + wait;
   }
-  return now >= Math.max(st.tried || 0, st.at || 0) + src.every;
+  return st.ok === null ? 0 : Math.max(st.tried || 0, st.at || 0) + src.every;
 }
+function dashDue(id, now) { return now >= dashNextAt(id); }
 function dashSkip(id) {
   if (id === "met") return S.off.includes("metoffice");
   if (id === "alerts" || id === "past" || id === "tests" || id === "operators") return S.off.includes("gov-alerts");
@@ -5320,7 +5515,7 @@ function dashTick(force = false) {
     if (DASH.busy.has(id) || dashSkip(id)) continue;
     const st = DASH.s[id];
     if (force) {
-      if ((id === "past" || id === "tests" || id === "operators") && st.at && !dashDue(id, now)) continue;
+      if (st.ok === true && DASH_SRC[id].every > 5 * 60e3 && !dashDue(id, now)) continue;
       if (now - (st.tried || 0) < 15000) continue;
       dashRun(id);
     } else if (dashDue(id, now)) dashRun(id);
@@ -5335,7 +5530,17 @@ function dashLoad(id) {
   if (id === "operators") return dashFetch(id, src.url, parseOperatorTests);
   if (id === "nrw") return dashFetch(id, src.url, parseNrwPage);
   if (id === "ea") return dashFetch(id, src.url, parseEaFloods);
-  if (id === "sepa") return dashFetch(id, src.url, parseSepaPage);
+  if (id === "sepa") {
+    const parse = text => {
+      const data = parseSepaPage(text), age = Date.now() - data.updated;
+      if (age < -5 * 60e3 || age > 2 * 3600e3) throw new Error("stale-source");
+      return data;
+    };
+    return dashFetch(id, src.url, parse).catch(error => {
+      if (error.message === "relays-off" || error.message === "rate" || /429/.test(error.message)) throw error;
+      return dashFetch(id, src.fallback, parse);
+    });
+  }
   const p = dashForecastPlace();
   const key = dashPlaceKey(p);
   return dashFetch(id, forecastUrl(p), parseForecast).then(r => ({ ...r, data: { ...r.data, key } }));
@@ -5359,7 +5564,7 @@ async function dashRun(id) {
   DASH.busy.add(id); st.tried = Date.now(); paintDashSoon();
   try {
     const r = await dashLoad(id);
-    Object.assign(st, { ok: true, fails: 0, error: "", at: Date.now(), via: r.via, data: r.data });
+    Object.assign(st, { ok: true, fails: 0, error: "", at: Math.min(Date.now(), r.at || Date.now()), via: r.via, data: r.data });
     if (id === "met") dashMirror("metoffice", r.data.items.map(metFeedItem));
     if (id === "past") { const def = FEEDS.find(f => f.id === "gov-alerts"); if (def) { try { dashMirror("gov-alerts", parseFeed(def, r.text)); } catch (_) {} } }
   } catch (e) {
@@ -5398,7 +5603,7 @@ function dashModel(now) {
   };
   const add = (mine, row) => (mine ? live : away).push(row);
   // Met Office
-  if (S.off.includes("metoffice")) notes.push("Met Office warnings are switched off in Live wire, so the desk does not check them.");
+  if (S.off.includes("metoffice")) failed.push({ name: DASH_SRC.met.name, why: "switched off in Live wire settings", last: 0 });
   else if (dashFresh("met", now)) {
     checked.push(["met", DASH_SRC.met.short, DASH.s.met.at]);
     for (const w of DASH.s.met.data.items || []) {
@@ -5422,10 +5627,10 @@ function dashModel(now) {
     checked.push([id, DASH_SRC[id].short, DASH.s[id].at]);
     if (d.severe) add(true, { sev: 3, cls: "red", n: d.severe, url: DASH_SRC[id].home, text: d.severe + " severe flood warning" + (d.severe === 1 ? "" : "s") + " in " + nation + " (danger to life)", short: "" });
     if (d.warn) add(true, { sev: 2, cls: "amber", n: d.warn, url: DASH_SRC[id].home, text: d.warn + " flood warning" + (d.warn === 1 ? "" : "s") + " in " + nation + " (flooding expected)", short: "" });
-    if (d.alert) notes.push(nation + ": " + d.alert + " flood alert" + (d.alert === 1 ? "" : "s") + " (flooding possible).");
+    if (d.alert) add(true, { sev: 1, cls: "amber", n: d.alert, url: DASH_SRC[id].home, text: d.alert + " flood alert" + (d.alert === 1 ? "" : "s") + " in " + nation + " (flooding possible)", short: "" });
   }
   // Emergency alerts
-  if (S.off.includes("gov-alerts")) notes.push("GOV.UK emergency alerts are switched off in Live wire, so the desk does not check them.");
+  if (S.off.includes("gov-alerts")) failed.push({ name: DASH_SRC.alerts.name, why: "switched off in Live wire settings", last: 0 });
   else if (dashFresh("alerts", now)) {
     checked.push(["alerts", DASH_SRC.alerts.short, DASH.s.alerts.at]);
     const names = p ? [dashNorm(p.nation), ...dashPlaceNames(p)].filter(Boolean) : [];
@@ -5526,7 +5731,7 @@ function ukFloodTile(now) {
   const rows = FLOOD_NATIONS.map(([id, nation]) => floodNationTile(id, nation, now)).concat([niFloodTile(now)]);
   const countries = FLOOD_NATIONS.map(([id, nation]) => nation + ": " + (floodCurrent(id, now) ? floodSum(DASH.s[id].data).replace("None in force", "none") : dashSkip(id) ? "switched off" : "not checked")).join(". ");
   const value = n ? floodSum(total) : ni.items.length ? "NI rain / storm warning" + (ni.items.length === 1 ? "" : "s") : complete ? "None in force" : "Check incomplete";
-  const state = total.severe || ni.items.some(w => w.level === "red") ? "bad" : total.warn || ni.items.length ? "warn" : !complete ? "none" : total.alert ? "info" : "ok";
+  const state = total.severe || ni.items.some(w => w.level === "red") ? "bad" : total.warn || ni.items.length ? "warn" : total.alert ? "info" : complete ? "ok" : "none";
   const note = (complete ? "" : "Partial check. ") + countries + ". NI: " + (!ni.current ? "rain warnings not checked" : ni.items.length ? ni.items.length + " rain / storm warning" + (ni.items.length === 1 ? "" : "s") : "no rain warnings") + ".";
   const details = '<details class="dash-extra flood-details" id="ukFloodDetails"><summary>By country · official sources</summary>' + rows.map(t =>
     '<div class="flood-country"><b>' + esc(t[0].replace("Floods · ", "")) + '</b><span>' + esc(t[1]) + '</span><small>' + esc(t[3]) + '</small><a href="' + esc(t[4]) + '" target="_blank" rel="noopener noreferrer">' + esc(t[5]) + ' ↗</a>' + (t[0].includes("Northern Ireland") ? '<a href="' + esc(DASH_SRC.met.home) + '" target="_blank" rel="noopener noreferrer">Met Office warnings ↗</a>' : '') + '</div>').join("")
@@ -5628,11 +5833,17 @@ function testsTile(now) {
     .sort((a,b) => a.at - b.at);
   const next = upcoming[0];
   if (next) return [label, (next.kind === "Operator" ? "Operator · " : "") + new Date(next.at).toLocaleDateString("en-GB", {weekday:"short", day:"numeric", month:"short", year:"numeric", timeZone:"Europe/London"}),
-    "info", next.kind === "Operator" ? "Operator test; most mobile phones will not receive it. Officially announced on GOV.UK." : "Upcoming test announced by GOV.UK.", next.url || href, "Official notice"];
+    "info", (next.kind === "Operator" ? "Operator test. Most phones will not receive it." : "Upcoming test announced by GOV.UK.")
+      + (fresh.length < ids.length ? " The other schedule page is unverified." : ""), next.url || href, "Official notice"];
   if (fresh.length === 2) return [label, "None announced", "ok", "No future national or operator test dates on the two checked GOV.UK pages. Verified " + tLondon(Math.min(...fresh.map(id => DASH.s[id].at))) + ".", href, lt];
-  if (fresh.length === 1) return [label, "No dated test found", "none", "One GOV.UK test page checked; the other could not be verified. No all-clear claimed.", href, lt];
-  const busy = ids.some(id => DASH.busy.has(id));
-  return [label, busy ? "Checking schedule" : "Schedule not verified", "none", busy ? "Automatic GOV.UK check in progress." : "GOV.UK could not be checked; next attempt is automatic.", href, lt];
+  const missing = ids.filter(id => !fresh.includes(id));
+  const busy = missing.some(id => DASH.busy.has(id));
+  const last = ids.flatMap(id => DASH.s[id].data?.items || [])
+    .filter(x => Number.isFinite(x.at) && dayKey(x.at) >= dayKey(now)).sort((a,b) => a.at - b.at)[0];
+  const note = navigator.onLine === false ? "Offline. Open GOV.UK when you reconnect." : busy ? "Checking the GOV.UK schedule." :
+    fresh.length ? "One GOV.UK page checked. The other is unverified." : dashCap(DASH.s.tests.error || DASH.s.operators.error || "GOV.UK has yet to be checked") + ".";
+  const saved = last ? " Last published date seen: " + new Date(last.at).toLocaleDateString("en-GB", {day:"numeric", month:"short", year:"numeric", timeZone:"Europe/London"}) + ". Confirm it on GOV.UK." : "";
+  return [label, busy ? "Checking schedule" : "Schedule not verified", "none", note + saved, href, lt];
 }
 function weatherBlock(now) {
   const m = dashModel(now), p = dashForecastPlace();
@@ -5658,7 +5869,7 @@ function dashLine(m) {
     sub = "Latest verified warnings are listed below. Follow the linked official notices.";
   } else if (checked) {
     st = failed || pending ? "none" : "ok";
-    head = "No active critical alerts reported by checked sources";
+    head = failed || pending ? "Some live checks are still unverified" : "No active warnings reported by checked sources";
     sub = checked + " sources verified" + (failed || pending ? "; " + (failed + pending) + " still unverified" : "") + ".";
   } else if (navigator.onLine === false) {
     head = "Offline · live alerts cannot be verified";
@@ -5681,15 +5892,21 @@ function dashBody() {
   const flood = ukFloodTile(now);
   const tiles = [alertsTile(now), metTile(now,null), flood, gridTile(now), testsTile(now), sysTile(now)];
 
-  const ok = ["alerts","met","ea","nrw","sepa","tests","operators"].filter(id => ["ea","nrw","sepa"].includes(id) ? floodCurrent(id, now) : !dashSkip(id) && navigator.onLine !== false && DASH.s[id].ok !== false && dashFresh(id,now)).length;
-  const checkLine = '<div class="dash-coverage"><span><span class="dash-lamp ' + (ok > 0 ? 'lit' : '') + '"></span>Official feeds ' + ok + '/7 verified</span><span>Next checks run automatically · ' + esc(tLondon(now)) + ' UK</span></div>';
+  const ids = ["alerts","met","ea","nrw","sepa","tests","operators"];
+  const verified = ids.filter(id => ["ea","nrw","sepa"].includes(id) ? floodCurrent(id, now) : !dashSkip(id) && dashFresh(id,now));
+  const pending = ids.filter(id => DASH.busy.has(id)).length;
+  const next = Math.min(...ids.filter(id => !dashSkip(id) && !DASH.busy.has(id)).map(dashNextAt));
+  const status = navigator.onLine === false ? "Offline" : pending ? "Checking " + pending + (pending === 1 ? " source" : " sources") : S.paused ? "Checks paused"
+    : next === Infinity ? "Checks switched off" : next > now ? "Next check " + tLondon(next) + " UK" : "Next check due";
+  const lamp = verified.length === ids.length ? "lit" : verified.length ? "partial" : "";
+  const checkLine = '<div class="dash-coverage"><span><span class="dash-lamp ' + lamp + '"></span>Official feeds ' + verified.length + '/' + ids.length + ' verified</span><span>' + esc(status) + '</span></div>';
   return dashLine(model) + checkLine + '<div class="uk-grid dash-tiles" id="ukTiles">' + tiles.map(dashTileHtml).join("") + '</div>' + weatherBlock(now);
 }
 function dashBoard() {
   return '<section class="panel uk-board dash" id="ukBoard"><div class="row-between"><div><p class="eyebrow">UK official signals</p></div><button type="button" class="chip" data-pullsignals="1">Check now</button></div>'
     + '<div id="dashBody">' + dashBody() + '</div>'
     + '<details class="grid-monitor" id="gridMonitor"><summary>Explore GB frequency history · 15 minutes / 1 hour</summary><div id="gridMonitorBody">' + gridMonitorBody() + '</div></details>'
-    + '<p class="xs muted dash-foot">Checked automatically when the desk opens and every few minutes while it is open. The Met Office, GOV.UK alert, NRW and SEPA pages block direct reading by browsers, so the desk reads them through public relays. If a source can\'t be reached, the board says so and retries by itself.</p></section>';
+    + '<p class="xs muted dash-foot">Live warnings refresh about every two minutes while the desk is open. GOV.UK, the Met Office, NRW and SEPA are read through the desk\u2019s GitHub collector every few minutes, with public relays as a backup. ' + esc(collectorText()) + ' If a check fails, use the official link on that card.</p></section>';
 }
 let dashTimer = null;
 function paintDashSoon() { if (dashTimer) return; dashTimer = setTimeout(() => { dashTimer = null; paintDash(); }, 150); }
@@ -5939,7 +6156,7 @@ document.addEventListener("click", e => {
   else if (d.lens) { S.nowLens = d.lens; rerenderInPlace(); }
   else if (d.nowsort) { S.nowSort = d.nowsort; rerenderInPlace(); }
   else if (d.morestories) { S[d.morestories] += 12; rerenderInPlace(); }
-  else if (d.pullsignals) { if (navigator.onLine === false) announce("This device is offline."); else { if (DASH) dashTick(true); if (!L.pulling) pullAll(SIGNAL_IDS); announce("Checking weather warnings, floods, emergency alerts and the grid."); } }
+  else if (d.pullsignals) { if (navigator.onLine === false) announce("This device is offline."); else { if (DASH) dashTick(true); if (!L.pulling) pullAll(SIGNAL_IDS); announce("Checking emergency alerts, the test schedule, weather, floods and the grid."); } }
   else if (d.settheme) { S.theme = d.settheme; applyTheme(); paintClock(); announce("Night theme on. Change it with the theme button at the top."); }
   else if (d.upkeepdone) { P.upkeep = Object.assign({}, P.upkeep, { [d.upkeepdone]: isoDay(Date.now()) }); if (d.upkeepdone === "review") P.reviewed = Date.now(); savePrep(); rerenderInPlace(); announce("Recorded. Next date worked out."); }
   else if (d.ics) { downloadFile("Emergency_Kit_Reminders.ics", icsFile(), "text/calendar"); announce("Calendar file saved. Open it to add the repeating reminders."); }

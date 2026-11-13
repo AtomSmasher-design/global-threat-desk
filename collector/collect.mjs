@@ -40,6 +40,28 @@ function sourcesFromDesk() {
   return { plain: keep.sort(), gdelt: [...gdelt] };
 }
 
+// Keep feeds light for phones: the newest 40 articles, without the full article bodies
+// when a short summary is present. The desk only shows titles and short summaries.
+const KEEP_ITEMS = 40;
+function trimFeed(text) {
+  const head = text.slice(0, 2000);
+  const kind = /<rdf:RDF[\s>]/.test(head) ? "rdf" : /<rss[\s>]/.test(head) ? "rss" : /<feed[\s>]/.test(head) ? "atom" : "";
+  if (!kind) return text;
+  let out = text;
+  const starts = [...out.matchAll(/<(item|entry)[\s>]/g)].map(m => m.index);
+  if (starts.length > KEEP_ITEMS) out = out.slice(0, starts[KEEP_ITEMS]) + (kind === "rss" ? "</channel></rss>" : kind === "rdf" ? "</rdf:RDF>" : "</feed>");
+  if (/<description[\s>]/.test(out)) out = out.replace(/<content:encoded>[\s\S]*?<\/content:encoded>/g, "");
+  if (kind === "atom" && /<summary[\s>]/.test(out)) out = out.replace(/<content(?:\s[^>]*)?>[\s\S]*?<\/content>/g, "");
+  // Very long summaries (WHO publishes whole articles there) are cut to a safe length.
+  out = out.replace(/<(description|summary)(\s[^>]*)?>([\s\S]*?)<\/\1>/g, (all, tag, attrs = "", body) => {
+    if (body.length <= 3000) return all;
+    const cdata = /^\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*$/.exec(body);
+    const cut = cdata ? "<![CDATA[" + cdata[1].slice(0, 3000).replace(/\]\]$|\]$/, "") + "]]>" : body.slice(0, 3000).replace(/&[#\w]*$/, "");
+    return "<" + tag + attrs + ">" + cut + "</" + tag + ">";
+  });
+  return out;
+}
+
 async function grab(url, ms = 25000) {
   const at = new Date().toISOString();
   try {
@@ -48,7 +70,7 @@ async function grab(url, ms = 25000) {
     if (!r.ok) return { ok: false, status: r.status, at, error: "HTTP " + r.status };
     if (text.length > MAX_TEXT) return { ok: false, status: r.status, at, error: "too large" };
     if (!text.trim()) return { ok: false, status: r.status, at, error: "empty reply" };
-    return { ok: true, status: r.status, at, text };
+    return { ok: true, status: r.status, at, text: trimFeed(text) };
   } catch (e) {
     return { ok: false, status: 0, at, error: String((e && (e.cause?.code || e.name || e.message)) || e).slice(0, 120) };
   }
