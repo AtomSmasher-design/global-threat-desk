@@ -56,3 +56,7 @@ If the result does not match, do not use the file.
 This is guidance for preparing, not a replacement for the emergency services. In danger, ring 999. Live reports are publishers' own accounts, labelled automatically; open the source before treating one as fact. Phone numbers were checked on 13 November 2026 against each organisation's own website.
 
 Free to use. No adverts, no tracking, no payment.
+
+## Licence
+
+MIT. Free to use, copy, adapt and share, including versions for other countries. Keep the licence notice in your copy. See [LICENSE](LICENSE).
