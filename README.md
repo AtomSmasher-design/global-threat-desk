@@ -2,6 +2,8 @@
 
 A free, single-file, offline emergency desk for the UK. One HTML file of about 1 MB. Open it in any browser, with or without a signal.
 
+**[Download v3.11](https://github.com/AtomSmasher-design/global-threat-desk/raw/main/Global_Threat_Desk_UK_Emergency_PREP_v3.11.html)** (1.05 MB, SHA-256 below)
+
 ## What it covers
 
 - **Major incidents:** cyber attacks on infrastructure and other incidents that affect countries, with official sources.
@@ -13,7 +15,7 @@ A free, single-file, offline emergency desk for the UK. One HTML file of about 1
 
 ## How to use it
 
-1. Download `Global_Threat_Desk_UK_Emergency_PREP_v3.11.html` from the latest release.
+1. Download `Global_Threat_Desk_UK_Emergency_PREP_v3.11.html` with the link at the top of this page.
 2. Open it in your browser. No installation and no account are needed.
 3. Keep a copy on your phone, on a USB stick, and print the survival pack.
 
